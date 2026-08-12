@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AIRIS Predictions Playground</title>
+<style>
+  :root{
+    --content-high:rgba(0,10,58,1); --content-med:rgba(0,10,58,.7); --content-low:rgba(0,10,58,.57);
+    --surface:#f4f6f9; --border:#d9dae1; --blue:#296aff; --blue-hover:#0e4eff;
+    --nav1:#2a2f69; --nav2:#313f81;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:Inter,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,"PingFang TC","Microsoft JhengHei",sans-serif;
+    background:var(--surface);color:var(--content-high);-webkit-font-smoothing:antialiased;min-height:100vh}
+  header{background:linear-gradient(90deg,var(--nav1),var(--nav2),var(--nav1));color:#fff;padding:20px 32px}
+  header h1{font-size:20px;font-weight:600;letter-spacing:.3px}
+  header p{font-size:13px;opacity:.75;margin-top:4px}
+  main{max-width:860px;margin:0 auto;padding:32px 24px 64px}
+  .sec{background:#fff;border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:20px}
+  .sec h2{font-size:16px;font-weight:600;display:flex;align-items:center;gap:8px}
+  .sec h2 .path{font-size:12px;font-weight:400;color:var(--content-low);background:var(--surface);
+    border:1px solid var(--border);border-radius:4px;padding:1px 8px}
+  .sec .desc{font-size:13px;color:var(--content-med);margin:6px 0 14px}
+  ul.files{list-style:none;display:flex;flex-direction:column;gap:6px}
+  ul.files li a{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;
+    text-decoration:none;color:var(--content-high);font-size:14px;font-weight:600;transition:background .12s}
+  ul.files li a:hover{background:rgba(41,106,255,.07);color:var(--blue)}
+  ul.files li a svg{width:16px;height:16px;flex:0 0 16px;color:var(--content-low)}
+  ul.files li a:hover svg{color:var(--blue)}
+  .empty{font-size:13px;color:var(--content-low);padding:10px 12px}
+  footer{max-width:860px;margin:0 auto;padding:0 24px 32px;font-size:12px;color:var(--content-low)}
+  footer code{background:#fff;border:1px solid var(--border);border-radius:4px;padding:1px 5px}
+</style>
+</head>
+<body>
+<header>
+  <h1>AIRIS Predictions Playground</h1>
+  <p>Design templates, mockups, prototypes &amp; specs for AIRIS Predictions — experimental.</p>
+</header>
+<main>
+  <section class="sec" id="sec-shells">
+    <h2>Shells <span class="path">shells/</span></h2>
+    <div class="desc">Reusable design templates used as the base for mockups and prototypes.</div>
+    <ul class="files"></ul>
+  </section>
+  <section class="sec" id="sec-playground">
+    <h2>Playground <span class="path">playground/</span></h2>
+    <div class="desc">Experimental / work-in-progress outputs. Disposable and subject to change.</div>
+    <ul class="files"></ul>
+  </section>
+  <section class="sec" id="sec-design-spec">
+    <h2>Design specs <span class="path">design-spec/</span></h2>
+    <div class="desc">Completed, agreed-upon design specs. Files graduate here from playground/.</div>
+    <ul class="files"></ul>
+  </section>
+</main>
+<footer>
+  Maintained by hand — when adding an HTML file to <code>shells/</code> or <code>playground/</code>,
+  add its filename to the <code>FILES</code> list in this page's source.
+</footer>
+<script>
+/* Add one line per new file. */
+const FILES = {
+  shells: [
+    'airis-shell.html',
+  ],
+  playground: [
+    'airis-prediction-listing-b.html',
+    'airis-prediction-listing-b-spec.html',
+  ],
+  'design-spec': [
+  ],
+};
+const ICON = '<svg viewBox="0 0 20 20" fill="none"><path d="M5 3.5h7l3.5 3.5v9.5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-12a1 1 0 0 1 1-1z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M12 3.5V7h3.5" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>';
+Object.entries(FILES).forEach(([dir, names]) => {
+  const ul = document.querySelector('#sec-' + dir + ' ul.files');
+  if (!names.length) { ul.outerHTML = '<div class="empty">No files yet.</div>'; return; }
+  ul.innerHTML = names.map(n => `<li><a href="${dir}/${n}">${ICON}${n}</a></li>`).join('');
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<!-- =====================================================================
+     DESIGN SPEC TEMPLATE — companion page to a hifi prototype (NOT a shell)
+     =====================================================================
+     Copy this file next to the prototype as <name>-spec.html and fill the
+     single SPEC_DATA_INJECT slot below. Everything on the page is rendered
+     by the template's own JS from that one data object.
+
+     Deliberately NEUTRAL chrome (dark-slate + system-ui, same family as the
+     state-switcher pill): this page is a review/handoff document, and must
+     never be mistaken for product UI. Do NOT restyle it with DS tokens.
+
+     HARD CONSTRAINTS (file:// operation):
+     - The prototype and this spec MUST sit in the SAME DIRECTORY; protoFile
+       is a bare filename, never a path.
+     - file:// documents are opaque origins — this page must NEVER touch
+       iframe.contentWindow / contentDocument. All embedding is static-src.
+     - A hash-only src change does NOT reload an iframe (fragment navigation
+       only, so the prototype's state never re-applies). Thumbnails therefore
+       get their src ONCE; the walkthrough forces reloads by prefixing a
+       unique query (?s=<n>) before the hash.
+     - Thumbnails load the prototype at  <protoFile>#state=<id>&shot  — the
+       state-switcher applies the state, then hides its pill (`shot`).
+     - Review in Chrome. Many iframes are full portal pages; they are
+       loading="lazy" so offscreen cards don't all render at once.
+     ===================================================================== -->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Design spec</title>
+<style>
+  :root{
+    --ink:#1B1F2A; --ink-soft:#3A4152; --body:#4A5164; --muted:#8A91A3;
+    --bg:#F2F3F6; --card:#FFFFFF; --line:#E2E5EC; --line-soft:#EDEFF4;
+    --accent:#5C93FF; --accent-ink:#2F66D0;
+    --ok:#2E9E63; --ok-bg:#E7F6EE; --fix:#B77816; --fix-bg:#FCF3E2;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{background:var(--bg);color:var(--body);
+    font:400 14px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif;}
+  [hidden]{display:none !important;}
+
+  /* ---- header ------------------------------------------------------- */
+  .spec-header{background:var(--ink);color:#fff;padding:26px 40px 24px;}
+  .spec-kicker{display:inline-flex;align-items:center;gap:8px;font:700 11px/1 var(--mono);
+    letter-spacing:1.6px;color:#9FB6E8;text-transform:uppercase;}
+  .spec-kicker .dot{width:7px;height:7px;border-radius:50%;background:var(--accent);}
+  .spec-title{font-size:24px;font-weight:700;line-height:1.25;margin-top:10px;color:#fff;}
+  .spec-meta{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:12px;}
+  .spec-badge{display:inline-flex;align-items:center;height:22px;padding:0 9px;border-radius:11px;
+    background:rgba(255,255,255,.10);color:#C9CEDA;font:600 11px/1 var(--mono);letter-spacing:.4px;}
+  .spec-badge.ds{background:var(--accent);color:#fff;}
+  .spec-open-proto{margin-left:auto;display:inline-flex;align-items:center;gap:7px;height:32px;
+    padding:0 14px;border-radius:16px;background:var(--accent);color:#fff;font-weight:600;
+    font-size:13px;text-decoration:none;}
+  .spec-open-proto:hover{background:#4A82F2;}
+  .spec-note{margin-top:10px;font-size:12px;color:#8F97AB;}
+
+  main{max-width:1280px;margin:0 auto;padding:34px 40px 60px;}
+  .sec{margin-bottom:44px;}
+  .sec>h2{font-size:17px;font-weight:700;color:var(--ink);margin-bottom:4px;}
+  .sec>.sec-sub{font-size:13px;color:var(--muted);margin-bottom:18px;}
+
+  /* ---- flow canvas --------------------------------------------------- */
+  .flow{background:var(--card);border:1px solid var(--line);border-radius:12px;
+    padding:20px 22px 22px;margin-bottom:22px;}
+  .flow-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:4px;}
+  .flow-head h3{font-size:15px;font-weight:700;color:var(--ink);}
+  .flow-id{font:600 11px/1 var(--mono);color:var(--muted);}
+  .flow-goal{font-size:13px;color:var(--body);margin-bottom:16px;}
+  .flow-walk{margin-left:auto;display:inline-flex;align-items:center;gap:6px;height:28px;
+    padding:0 12px;border:1px solid var(--accent);border-radius:14px;background:#fff;
+    color:var(--accent-ink);font:600 12px/1 inherit;cursor:pointer;}
+  .flow-walk:hover{background:#F0F5FF;}
+  .flow-track{display:flex;align-items:flex-start;gap:0;overflow-x:auto;padding:4px 2px 10px;}
+  .step{flex:none;width:346px;}
+  .step-cap{display:flex;align-items:baseline;gap:8px;margin-bottom:7px;}
+  .step-n{flex:none;width:20px;height:20px;border-radius:50%;background:var(--ink);color:#fff;
+    font:700 11px/20px var(--mono);text-align:center;}
+  .step-label{font-size:13px;font-weight:700;color:var(--ink);}
+  .step-state{display:block;font:500 10.5px/1 var(--mono);color:var(--muted);margin-top:3px;}
+  .thumb{position:relative;width:346px;height:216px;overflow:hidden;border:1px solid var(--line);
+    border-radius:8px;background:#fff;}
+  .thumb iframe{width:1440px;height:900px;border:0;transform:scale(.24);transform-origin:0 0;
+    pointer-events:none;}
+  .thumb-link{position:absolute;inset:0;border-radius:8px;}
+  .thumb-link:hover{box-shadow:inset 0 0 0 2px var(--accent);}
+  .thumb-link:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+  .step-note{font-size:12px;color:var(--body);margin-top:8px;width:346px;}
+  .step-arrow{flex:none;align-self:center;width:44px;height:216px;display:flex;
+    align-items:center;justify-content:center;color:#B4BACA;margin-top:27px;}
+  .step-arrow svg{display:block;}
+
+  /* ---- error table ---------------------------------------------------- */
+  .err-wrap{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow-x:auto;}
+  table.err{width:100%;border-collapse:collapse;min-width:920px;}
+  .err th{font:700 11px/1.3 inherit;letter-spacing:.6px;text-transform:uppercase;color:var(--muted);
+    text-align:left;padding:12px 14px;border-bottom:1px solid var(--line);white-space:nowrap;}
+  .err td{padding:12px 14px;border-bottom:1px solid var(--line-soft);vertical-align:top;font-size:13px;}
+  .err tr:last-child td{border-bottom:none;}
+  .err .c-n{color:var(--muted);font:600 12px/1.5 var(--mono);white-space:nowrap;}
+  .err .c-msg{min-width:230px;}
+  .surface{display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:10px;
+    font:600 11px/1 var(--mono);letter-spacing:.3px;background:#EDEFF4;color:var(--ink-soft);
+    white-space:nowrap;}
+  .surface.inline{background:#FBE9E9;color:#B03A3A;}
+  .surface.toast{background:#E9EFFC;color:#2F66D0;}
+  .surface.dialog{background:#F0EAFB;color:#6A3FB5;}
+  .surface.hint{background:#FCF3E2;color:#8F6210;}
+  .surface.tooltip{background:#E7F6EE;color:#1F7A4C;}
+  .msg-copy{display:inline-block;background:#F7F8FA;border:1px solid var(--line-soft);
+    border-left:3px solid var(--accent);border-radius:6px;padding:6px 10px;color:var(--ink);
+    font-size:13px;}
+  .view-link{color:var(--accent-ink);font-weight:600;text-decoration:none;white-space:nowrap;}
+  .view-link:hover{text-decoration:underline;}
+  .rub{white-space:nowrap;}
+  .rub-pill{display:inline-flex;align-items:center;gap:5px;height:20px;padding:0 9px;
+    border-radius:10px;font:700 11px/1 var(--mono);}
+  .rub-pill.pass{background:var(--ok-bg);color:var(--ok);}
+  .rub-pill.fixed{background:var(--fix-bg);color:var(--fix);}
+  .rub details{margin-top:7px;white-space:normal;}
+  .rub summary{cursor:pointer;font:600 11px/1.4 inherit;color:var(--muted);list-style:none;}
+  .rub summary::before{content:"▸ ";}
+  .rub details[open] summary::before{content:"▾ ";}
+  .rub .ba{margin-top:6px;font-size:12px;max-width:260px;}
+  .rub .ba .before{color:#B03A3A;text-decoration:line-through;display:block;}
+  .rub .ba .after{color:var(--ok);display:block;margin-top:2px;}
+  .rub .rules{margin-top:5px;font:600 10.5px/1.6 var(--mono);color:var(--muted);}
+  .rub .rnote{margin-top:4px;font-size:11.5px;color:var(--body);max-width:260px;}
+
+  /* ---- walkthrough overlay -------------------------------------------- */
+  .walk{position:fixed;inset:0;z-index:1000;background:rgba(15,18,26,.78);
+    display:flex;align-items:center;justify-content:center;padding:28px;}
+  .walk-panel{background:var(--ink);border-radius:14px;max-width:calc(100vw - 56px);
+    box-shadow:0 24px 70px rgba(0,0,0,.5);overflow:hidden;}
+  .walk-bar{display:flex;align-items:center;gap:14px;padding:12px 18px;color:#fff;}
+  .walk-bar .wtitle{font-size:13px;font-weight:700;}
+  .walk-bar .wstep{font:600 11px/1 var(--mono);color:#9FB6E8;}
+  .walk-btn{display:inline-flex;align-items:center;height:28px;padding:0 12px;border:none;
+    border-radius:14px;background:rgba(255,255,255,.12);color:#fff;font:600 12px/1 inherit;
+    cursor:pointer;}
+  .walk-btn:hover:not(:disabled){background:rgba(255,255,255,.22);}
+  .walk-btn:disabled{opacity:.35;cursor:default;}
+  .walk-btn.next{background:var(--accent);}
+  .walk-nav{margin-left:auto;display:flex;gap:8px;align-items:center;}
+  .walk-close{background:none;border:none;color:#C9CEDA;font-size:20px;line-height:1;
+    cursor:pointer;padding:2px 6px;}
+  .walk-close:hover{color:#fff;}
+  .walk-stage{background:#fff;overflow:hidden;position:relative;}
+  .walk-stage iframe{border:0;transform-origin:0 0;display:block;}
+  .walk-caption{padding:10px 18px 14px;color:#C9CEDA;font-size:12px;}
+
+  /* ---- footer ---------------------------------------------------------- */
+  .spec-footer{border-top:1px solid var(--line);margin-top:8px;padding:18px 40px 40px;
+    max-width:1280px;margin-left:auto;margin-right:auto;font-size:12px;color:var(--muted);}
+  .spec-footer b{color:var(--ink-soft);}
+
+  .spec-empty{max-width:640px;margin:80px auto;background:var(--card);border:1px solid var(--line);
+    border-radius:12px;padding:28px 30px;font-size:14px;color:var(--body);}
+  .spec-empty code{font:600 12px/1 var(--mono);background:#F0F1F5;padding:2px 6px;border-radius:4px;}
+
+  @media print{.flow-walk,.spec-open-proto{display:none;}}
+</style>
+</head>
+<body>
+
+<script>
+/* ======================= CUSTOMIZABLE ZONE ============================
+   Replace the SPEC_DATA_INJECT line below with the spec data object.
+   That is the ONLY edit this file needs — all rendering is generic.
+
+   window.SPECDATA = {
+     title:     'Audience segments — design spec',
+     product:   'AIQUA',              // product / shell name
+     ds:        'DS3',                // 'DS2' | 'DS3'
+     protoFile: 'audience-segments.html',   // bare filename, SAME directory
+     rubric:    'error-message-rubric.md',  // rubric the wording was reviewed against
+     date:      '2026-07-09',         // review date (string, optional)
+     viewport:  { w:1440, h:900 },    // prototype design viewport (optional)
+     flows: [
+       { id:'create', title:'Create a segment', goal:'One line on what the user achieves.',
+         steps: [
+           { state:'populated',        label:'Segment list',    note:'Entry point.' },
+           { state:'create-2-form',    label:'Create drawer',   note:'Name + rules.' },
+           { state:'create-3-done',    label:'Created',         note:'Success toast.' }
+         ] }
+     ],
+     errors: [
+       { id:'E1', trigger:'Submit with empty name', surface:'inline',
+         location:'Create drawer → Name field', message:'Required',
+         state:'error-name-required',           // optional: PROTOSTATES id to view it
+         rubric:{ result:'pass', ruleIds:['S1','W2'] } },
+       { id:'E2', trigger:'Save call fails', surface:'toast',
+         location:'Toast, bottom-center', message:'Failed to create segment',
+         state:'error-save-failed',
+         rubric:{ result:'fixed', before:'Unable to create segment.',
+                  ruleIds:['W5','M4'], note:'“Failed to…” over “Unable to…”; no period.' } }
+     ]
+   };
+
+   Notes:
+   - Every steps[].state and errors[].state MUST be an id in the
+     prototype's window.PROTOSTATES.
+   - surface: 'inline' | 'hint' | 'toast' | 'dialog' | 'tooltip' | 'page'
+   - rubric.result: 'pass' | 'fixed' (fixed ⇒ include before + ruleIds)
+   ====================================================================== */
+window.SPECDATA = {
+  title:     'AIRIS Predictions — list, create & manage (Version B)',
+  product:   'AIRIS',
+  ds:        'DS3',
+  protoFile: 'airis-prediction-listing-b.html',
+  rubric:    'error-message-rubric.md',
+  date:      '2026-08-12',
+  viewport:  { w: 1440, h: 900 },
+
+  flows: [
+    {
+      id: 'create',
+      title: 'Create a prediction',
+      goal: 'An analyst creates a new prediction and starts its first training run. Version B puts Setup and Schedule on one page — there is no stepper, and Save stays disabled until the form is valid, so this flow shows no inline required-field errors.',
+      steps: [
+        { state: 'populated',      label: 'Prediction list',   note: 'Entry point. "Create prediction" sits top-right of the page header.' },
+        { state: 'create-2-form',  label: 'Empty form',        note: 'Prediction info, type, window, goal events and schedule on one page. Save is disabled — see E24 for the missing explanation.' },
+        { state: 'create-3-ready', label: 'Ready to save',     note: 'Name, one goal event and a run date filled. Save enables and gains an info tooltip about the 1–2 h training time.' },
+        { state: 'create-4-saved', label: 'Saved',             note: 'Back on the list with the new row on top in Training, plus a spinner toast. The toast auto-dismisses after 4 s.' }
+      ]
+    },
+    {
+      id: 'edit-schedule',
+      title: 'Edit a refresh schedule',
+      goal: 'Change how often an existing prediction re-runs inference. Editing always uses the classic three-step wizard (Setup → Schedule → Review & launch), and type, prediction window and goal events are locked once a prediction exists.',
+      steps: [
+        { state: 'populated',      label: 'Prediction list',   note: 'Entry point.' },
+        { state: 'row-menu',       label: 'Row actions menu',  note: 'Refresh → Edit refresh schedule. Retrain is disabled here — this row was retrained 2 days ago (E12).' },
+        { state: 'edit-3-schedule',label: 'Schedule step',     note: 'The wizard opens straight on step 2 with the row’s current schedule seeded.' },
+        { state: 'edit-4-review',  label: 'Review & launch',   note: 'Read-only summary of everything collected. Save shows a spinner, then an update toast on the list.' }
+      ]
+    },
+    {
+      id: 'delete',
+      title: 'Delete a prediction',
+      goal: 'Remove a prediction and its data permanently. Destructive, irreversible, and blocked entirely while the model is training or refreshing.',
+      steps: [
+        { state: 'populated',        label: 'Prediction list',    note: 'Entry point.' },
+        { state: 'row-menu',         label: 'Row actions menu',   note: 'Delete is enabled only for Ready, Failed and Archived rows.' },
+        { state: 'delete-2-confirm', label: 'Delete confirmation',note: 'Consequence first, then the Delete confirm button (E15).' }
+      ]
+    }
+  ],
+
+  errors: [
+    /* ---- inline field validation (S1) ---- */
+    { id: 'E1', trigger: 'Next with an empty prediction name (edit wizard, step 1)', surface: 'inline',
+      location: 'Setup → Prediction name', message: 'Required',
+      state: 'error-name-required',
+      rubric: { result: 'fixed', before: 'Prediction name is required.',
+                ruleIds: ['W2','M4','M8'],
+                note: 'Echoed the field label and carried a period on a fragment; W2’s canonical string is "Required".' } },
+
+    { id: 'E2', trigger: 'Next with no goal event selected', surface: 'inline',
+      location: 'Setup → Goal event section', message: 'At least 1 goal event is required',
+      state: 'error-goal-event-required',
+      rubric: { result: 'fixed', before: 'At least one goal event is required.',
+                ruleIds: ['M3','M4'],
+                note: 'Numerals over words, and no period on a fragment.' } },
+
+    { id: 'E3', trigger: 'Next on a one-time schedule with no run date', surface: 'inline',
+      location: 'Schedule → Run date', message: 'Required',
+      state: 'error-run-date-required',
+      rubric: { result: 'fixed', before: 'Run date is required.',
+                ruleIds: ['W2','M4','M8'], note: 'Same label echo as E1.' } },
+
+    { id: 'E4', trigger: 'Next on a recurring schedule with no frequency', surface: 'inline',
+      location: 'Schedule → Frequency', message: 'Required',
+      state: 'error-frequency-required',
+      rubric: { result: 'fixed', before: 'Please select a frequency.',
+                ruleIds: ['W2','M4','M8'],
+                note: '"Please"-padding and an instruction where W2 wants the violation stated directly.' } },
+
+    { id: 'E5', trigger: 'Next on a recurring schedule with no start date', surface: 'inline',
+      location: 'Schedule → Start date', message: 'Required',
+      rubric: { result: 'fixed', before: 'Start date is required.',
+                ruleIds: ['W2','M4','M8'], note: 'Same label echo as E1. Shares the E4 demo path.' } },
+
+    { id: 'E6', trigger: 'Next on a recurring schedule with no end date', surface: 'inline',
+      location: 'Schedule → End date', message: 'Required',
+      rubric: { result: 'fixed', before: 'End date is required.',
+                ruleIds: ['W2','M4','M8'], note: 'Same label echo as E1. Shares the E4 demo path.' } },
+
+    { id: 'E7', trigger: 'End date on or before the start date', surface: 'inline',
+      location: 'Schedule → End date', message: 'Must be later than the start date',
+      state: 'error-end-date-order',
+      rubric: { result: 'fixed', before: 'End date must be later than the start date.',
+                ruleIds: ['W1','M4','M8'],
+                note: 'W1 wants range errors to open with "Must be…" and drop the implied subject.' } },
+
+    { id: 'E8', trigger: 'Saving a name that already exists on another prediction', surface: 'inline',
+      location: 'Setup → Prediction name', message: 'A prediction with this name already exists',
+      rubric: { result: 'pass', ruleIds: ['S1','W3','M4','M6'],
+                note: 'Not implemented in the prototype — wording drafted for build.' } },
+
+    { id: 'E9', trigger: 'Prediction name longer than the field limit', surface: 'inline',
+      location: 'Setup → Prediction name', message: 'Exceeds the character limit',
+      rubric: { result: 'pass', ruleIds: ['S1','W2','M4'],
+                note: 'Not implemented in the prototype — no limit is enforced today.' } },
+
+    /* ---- action-unavailable tooltips (S7) ---- */
+    { id: 'E10', trigger: 'Add event with 10 goal events already added', surface: 'tooltip',
+      location: 'Setup → disabled "Add event" button',
+      message: 'You’ve reached the maximum of 10 goal events. Remove one to add another.',
+      rubric: { result: 'pass', ruleIds: ['S7','W8','W18','M3'],
+                note: 'The button disables silently today; W18 needs reason + remedy.' } },
+
+    { id: 'E11', trigger: 'Retrain model on a row that is not Ready', surface: 'tooltip',
+      location: 'Row menu → disabled "Retrain model"',
+      message: 'Only Ready models can be retrained. Wait until training finishes, then retrain.',
+      state: 'error-retrain-unavailable',
+      rubric: { result: 'fixed', before: 'Only Ready models can be retrained.',
+                ruleIds: ['S7','W18'], note: 'Stated the reason but gave no remedy.' } },
+
+    { id: 'E12', trigger: 'Retrain model within 7 days of the last retrain', surface: 'tooltip',
+      location: 'Row menu → disabled "Retrain model"',
+      message: 'Last retrained on {date}. Retraining is available once every 7 days.',
+      state: 'error-retrain-cooldown',
+      rubric: { result: 'pass', ruleIds: ['S7','W18','M3','M4','M9'] } },
+
+    { id: 'E13', trigger: 'Archive a row that is training or refreshing', surface: 'tooltip',
+      location: 'Row menu → disabled "Archive"',
+      message: 'This prediction can’t be archived while it’s training or refreshing. Try again once it’s Ready.',
+      state: 'error-archive-unavailable',
+      rubric: { result: 'fixed', before: 'Model cannot be archived while training or refreshing.',
+                ruleIds: ['M2','M6','W18'],
+                note: 'Contraction, and the list calls these predictions, not models. Remedy added.' } },
+
+    { id: 'E14', trigger: 'Delete a row that is training or refreshing', surface: 'tooltip',
+      location: 'Row menu → disabled "Delete"',
+      message: 'This prediction can’t be deleted while it’s training or refreshing. Try again once it’s Ready.',
+      state: 'error-delete-unavailable',
+      rubric: { result: 'fixed', before: 'Model cannot be deleted while training or refreshing.',
+                ruleIds: ['M2','M6','W18'], note: 'Same fix as E13.' } },
+
+    /* ---- confirmation dialogs (S4 / W12) ---- */
+    { id: 'E15', trigger: 'Delete from the row menu', surface: 'dialog',
+      location: 'Delete confirmation dialog',
+      message: 'Permanently deletes {name} and its associated data. This can’t be undone.',
+      state: 'delete-2-confirm',
+      rubric: { result: 'fixed', before: 'This action will permanently delete {name} and its associated data. This action cannot be undone.',
+                ruleIds: ['M2','M8','W12'],
+                note: '"This action" twice, and "cannot" where M2 wants the contraction.' } },
+
+    { id: 'E16', trigger: 'Retrain model from the row menu', surface: 'dialog',
+      location: 'Retrain confirmation dialog',
+      message: 'Retraining starts a new training run using the latest available data. It takes 1–2 hours, and you’ll get an email when the retrained model is ready.',
+      state: 'retrain-confirm',
+      rubric: { result: 'fixed', before: 'Retraining starts a new training job using the latest available data. It takes 1-2 hours to re-train and you will receive an email notification when the re-train is ready.',
+                ruleIds: ['M2','M7'],
+                note: '"training job" is system jargon; "you will" → "you’ll"; "re-train" spelled two ways.' } },
+
+    { id: 'E17', trigger: 'Archive from the row menu', surface: 'dialog',
+      location: 'Archive confirmation dialog',
+      message: 'Archiving this prediction will stop all scheduled inference runs. You can unarchive it later and set up a new schedule if needed.',
+      state: 'archive-confirm',
+      rubric: { result: 'pass', ruleIds: ['S4','W12','W13','M4','M6'] } },
+
+    /* ---- async failures (S3 / S4) — not implemented in the prototype ---- */
+    { id: 'E18', trigger: 'Create call fails after Save', surface: 'toast',
+      location: 'Toast, bottom of the page', message: 'Failed to create prediction',
+      rubric: { result: 'pass', ruleIds: ['S3','W5','M4','M6'],
+                note: 'Blocked on a Toast error variant: the prototype’s toast is info-only and auto-dismisses after 4 s. S3 requires error toasts to be persistent.' } },
+
+    { id: 'E19', trigger: 'Update call fails after Save in the edit wizard', surface: 'toast',
+      location: 'Toast, bottom of the page', message: 'Failed to update prediction',
+      rubric: { result: 'pass', ruleIds: ['S3','W5','M4','M6'], note: 'Same persistence gap as E18.' } },
+
+    { id: 'E20', trigger: '"Refresh now" fails to start', surface: 'toast',
+      location: 'Toast, bottom of the page', message: 'Failed to refresh prediction',
+      rubric: { result: 'pass', ruleIds: ['S3','W5','M4','M6'], note: 'Same persistence gap as E18.' } },
+
+    { id: 'E21', trigger: 'Retrain fails after confirming', surface: 'dialog',
+      location: 'Retrain dialog, inline under the body — dialog stays open',
+      message: 'Failed to start retraining. Try again in a few minutes.',
+      rubric: { result: 'pass', ruleIds: ['S4','W11','M4','M7'] } },
+
+    { id: 'E22', trigger: 'Delete fails after confirming', surface: 'dialog',
+      location: 'Delete dialog, inline under the body — dialog stays open',
+      message: 'Failed to delete prediction. Try again in a few minutes.',
+      rubric: { result: 'pass', ruleIds: ['S4','W11','M4','M6'] } },
+
+    /* ---- page level (S5) ---- */
+    { id: 'E23', trigger: 'The prediction list cannot load', surface: 'page',
+      location: 'Table area, replacing the rows',
+      message: 'Unable to load predictions — We couldn’t load your predictions. Please refresh and try again.',
+      rubric: { result: 'pass', ruleIds: ['S5','W14','W15','W16','M2'],
+                note: 'Distinct from the "no predictions yet" empty state, which is a call to action.' } },
+
+    /* ---- Version B’s silent-disable gap ---- */
+    { id: 'E24', trigger: 'Save is disabled on the one-page create form and the user cannot tell why', surface: 'tooltip',
+      location: 'Create page → disabled Save button',
+      message: 'Required fields are missing. Add a prediction name, at least 1 goal event, and a run date.',
+      rubric: { result: 'pass', ruleIds: ['S7','W18','M3'],
+                note: 'Version B trades inline hints for a disabled Save, but showSaveInfoTooltip() returns early while disabled, so nothing explains the block. S7 says never block silently.' } }
+  ]
+};
+</script>
+
+<script>
+(function(){
+  'use strict';
+  var D = window.SPECDATA;
+  var esc = function(s){ return String(s == null ? '' : s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); };
+
+  if (!D || !D.protoFile) {
+    document.body.innerHTML =
+      '<div class="spec-empty"><b>No spec data.</b><br><br>This template renders from a ' +
+      '<code>window.SPECDATA</code> object injected at the <code>SPEC_DATA_INJECT</code> marker ' +
+      'in its first script block. See the CUSTOMIZABLE ZONE comment in this file for the contract.</div>';
+    return;
+  }
+
+  var VP = D.viewport || { w:1440, h:900 };
+  var THUMB_SCALE = 0.24;
+  var loadSeq = 0;                       // walkthrough cache-buster
+  function stateURL(state, shot, bust){  // bust ⇒ force a real reload (hash-only won't)
+    return D.protoFile + (bust ? '?s=' + (++loadSeq) : '') +
+           '#state=' + encodeURIComponent(state) + (shot ? '&shot' : '');
+  }
+
+  document.title = (D.title || 'Design spec');
+
+  var arrowSVG = '<svg width="26" height="16" viewBox="0 0 26 16" fill="none" aria-hidden="true">' +
+    '<path d="M1 8h21M16 2l6 6-6 6" stroke="currentColor" stroke-width="2" ' +
+    'stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+  /* ---- header ---- */
+  var flows = D.flows || [], errors = D.errors || [];
+  var h = '';
+  h += '<header class="spec-header"><div style="display:flex;align-items:flex-start;flex-wrap:wrap;gap:16px;">';
+  h += '<div style="flex:1 1 480px;min-width:0;">';
+  h += '<span class="spec-kicker"><span class="dot"></span>Design spec — review &amp; handoff document, not product UI</span>';
+  h += '<h1 class="spec-title">' + esc(D.title || 'Design spec') + '</h1>';
+  h += '<div class="spec-meta">';
+  if (D.product) h += '<span class="spec-badge">' + esc(D.product) + '</span>';
+  if (D.ds)      h += '<span class="spec-badge ds">' + esc(D.ds) + '</span>';
+  h += '<span class="spec-badge">' + flows.length + ' flow' + (flows.length === 1 ? '' : 's') + '</span>';
+  h += '<span class="spec-badge">' + errors.length + ' error scenario' + (errors.length === 1 ? '' : 's') + '</span>';
+  if (D.date)    h += '<span class="spec-badge">' + esc(D.date) + '</span>';
+  h += '</div>';
+  h += '<div class="spec-note">Screens below are the <b>live prototype</b> (' + esc(D.protoFile) +
+       ') embedded per state — click any screen to open it full size.</div>';
+  h += '</div>';
+  h += '<a class="spec-open-proto" href="' + esc(D.protoFile) + '" target="_blank">Open prototype ↗</a>';
+  h += '</div></header>';
+
+  /* ---- flows ---- */
+  h += '<main>';
+  h += '<section class="sec"><h2>User flows</h2><div class="sec-sub">Each step is a real prototype state (its ' +
+       '<span style="font-family:var(--mono)">#state</span> id is shown under the step label).</div>';
+  flows.forEach(function(f, fi){
+    h += '<div class="flow"><div class="flow-head"><h3>Flow ' + (fi+1) + ' — ' + esc(f.title) + '</h3>' +
+         '<span class="flow-id">' + esc(f.id) + '</span>' +
+         '<button type="button" class="flow-walk" data-flow="' + fi + '">Walk through ▸</button></div>';
+    if (f.goal) h += '<div class="flow-goal">' + esc(f.goal) + '</div>';
+    h += '<div class="flow-track">';
+    (f.steps || []).forEach(function(s, si){
+      if (si) h += '<div class="step-arrow">' + arrowSVG + '</div>';
+      h += '<div class="step"><div class="step-cap"><span class="step-n">' + (si+1) + '</span>' +
+           '<div><span class="step-label">' + esc(s.label) + '</span>' +
+           '<span class="step-state">#state=' + esc(s.state) + '</span></div></div>';
+      h += '<div class="thumb"><iframe loading="lazy" src="' + esc(stateURL(s.state, true)) +
+           '" title="' + esc(f.title + ' — ' + s.label) + '"></iframe>' +
+           '<a class="thumb-link" href="' + esc(stateURL(s.state, false)) +
+           '" target="_blank" aria-label="Open prototype at state ' + esc(s.state) + '"></a></div>';
+      if (s.note) h += '<div class="step-note">' + esc(s.note) + '</div>';
+      h += '</div>';
+    });
+    h += '</div></div>';
+  });
+  h += '</section>';
+
+  /* ---- error table ---- */
+  var passN = 0, fixN = 0;
+  errors.forEach(function(e){ if (e.rubric && e.rubric.result === 'fixed') fixN++; else passN++; });
+  h += '<section class="sec"><h2>Error scenarios &amp; message wording</h2>' +
+       '<div class="sec-sub">Every message reviewed against <b>' + esc(D.rubric || 'error-message-rubric.md') +
+       '</b> — ' + passN + ' passed as drafted, ' + fixN + ' fixed in review (before → after shown).</div>';
+  h += '<div class="err-wrap"><table class="err"><thead><tr>' +
+       '<th>#</th><th>Trigger</th><th>Surface</th><th>Location</th><th>Message</th><th>View</th><th>Rubric review</th>' +
+       '</tr></thead><tbody>';
+  errors.forEach(function(e, i){
+    var r = e.rubric || {};
+    h += '<tr><td class="c-n">' + esc(e.id || ('E' + (i+1))) + '</td>';
+    h += '<td>' + esc(e.trigger) + '</td>';
+    h += '<td><span class="surface ' + esc(e.surface || '') + '">' + esc(e.surface || '—') + '</span></td>';
+    h += '<td>' + esc(e.location || '—') + '</td>';
+    h += '<td class="c-msg"><span class="msg-copy">' + esc(e.message) + '</span></td>';
+    h += '<td>' + (e.state
+        ? '<a class="view-link" href="' + esc(stateURL(e.state, false)) + '" target="_blank">#' + esc(e.state) + ' ↗</a>'
+        : '<span style="color:var(--muted)">—</span>') + '</td>';
+    h += '<td class="rub">';
+    if (r.result === 'fixed') {
+      h += '<span class="rub-pill fixed">✎ fixed</span><details><summary>before → after' +
+           (r.ruleIds && r.ruleIds.length ? ' · ' + esc(r.ruleIds.join(', ')) : '') + '</summary>' +
+           '<div class="ba"><span class="before">' + esc(r.before || '—') + '</span>' +
+           '<span class="after">' + esc(e.message) + '</span></div>' +
+           (r.ruleIds && r.ruleIds.length ? '<div class="rules">rules: ' + esc(r.ruleIds.join(', ')) + '</div>' : '') +
+           (r.note ? '<div class="rnote">' + esc(r.note) + '</div>' : '') + '</details>';
+    } else {
+      h += '<span class="rub-pill pass">✓ pass</span>' +
+           (r.ruleIds && r.ruleIds.length ? '<div class="rules" style="margin-top:6px">checked: ' + esc(r.ruleIds.join(', ')) + '</div>' : '');
+    }
+    h += '</td></tr>';
+  });
+  h += '</tbody></table></div></section>';
+  h += '</main>';
+
+  /* ---- footer ---- */
+  h += '<footer class="spec-footer">Wording reviewed against <b>' + esc(D.rubric || 'error-message-rubric.md') +
+       '</b>' + (D.date ? ' on <b>' + esc(D.date) + '</b>' : '') +
+       ' · Prototype: <b>' + esc(D.protoFile) + '</b> — keep both files in the same folder · Review in Chrome.' +
+       '</footer>';
+
+  document.body.insertAdjacentHTML('beforeend', h);
+
+  /* ---- walkthrough (click-through) ---- */
+  var walkEl = null, walkFlow = null, walkIdx = 0;
+  function walkScale(){
+    var availW = Math.min(window.innerWidth - 56 - 2, 1160);
+    var availH = window.innerHeight - 56 - 110;   // bar + caption allowance
+    return Math.min(availW / VP.w, availH / VP.h, 1);
+  }
+  function renderWalkStep(){
+    var s = walkFlow.steps[walkIdx], k = walkScale();
+    var stage = walkEl.querySelector('.walk-stage');
+    stage.style.width  = Math.round(VP.w * k) + 'px';
+    stage.style.height = Math.round(VP.h * k) + 'px';
+    /* hash-only navigation would NOT re-run the prototype's state apply —
+       stateURL(..., true) prefixes a unique ?s=<n> to force a real reload */
+    stage.innerHTML = '<iframe src="' + esc(stateURL(s.state, true, true)) +
+      '" style="width:' + VP.w + 'px;height:' + VP.h + 'px;transform:scale(' + k + ');" ' +
+      'title="' + esc(s.label) + '"></iframe>';
+    walkEl.querySelector('.wstep').textContent =
+      'Step ' + (walkIdx+1) + ' / ' + walkFlow.steps.length + ' · #state=' + s.state;
+    walkEl.querySelector('.walk-caption').textContent =
+      s.label + (s.note ? ' — ' + s.note : '');
+    walkEl.querySelector('.walk-btn.prev').disabled = walkIdx === 0;
+    walkEl.querySelector('.walk-btn.next').disabled = walkIdx === walkFlow.steps.length - 1;
+  }
+  function openWalk(fi){
+    walkFlow = flows[fi]; walkIdx = 0;
+    walkEl = document.createElement('div');
+    walkEl.className = 'walk';
+    walkEl.innerHTML =
+      '<div class="walk-panel"><div class="walk-bar">' +
+      '<span class="wtitle">' + esc(walkFlow.title) + '</span><span class="wstep"></span>' +
+      '<div class="walk-nav">' +
+      '<button type="button" class="walk-btn prev">← Prev</button>' +
+      '<button type="button" class="walk-btn next">Next →</button>' +
+      '<button type="button" class="walk-close" aria-label="Close">×</button>' +
+      '</div></div><div class="walk-stage"></div><div class="walk-caption"></div></div>';
+    document.body.appendChild(walkEl);
+    walkEl.querySelector('.walk-btn.prev').onclick = function(){ if (walkIdx > 0) { walkIdx--; renderWalkStep(); } };
+    walkEl.querySelector('.walk-btn.next').onclick = function(){ if (walkIdx < walkFlow.steps.length - 1) { walkIdx++; renderWalkStep(); } };
+    walkEl.querySelector('.walk-close').onclick = closeWalk;
+    walkEl.addEventListener('click', function(e){ if (e.target === walkEl) closeWalk(); });
+    renderWalkStep();
+  }
+  function closeWalk(){ if (walkEl) { walkEl.remove(); walkEl = null; walkFlow = null; } }
+  document.addEventListener('click', function(e){
+    var b = e.target.closest && e.target.closest('.flow-walk');
+    if (b) openWalk(+b.getAttribute('data-flow'));
+  });
+  document.addEventListener('keydown', function(e){
+    if (!walkEl) return;
+    if (e.key === 'Escape') closeWalk();
+    else if (e.key === 'ArrowRight' && walkIdx < walkFlow.steps.length - 1) { walkIdx++; renderWalkStep(); }
+    else if (e.key === 'ArrowLeft'  && walkIdx > 0) { walkIdx--; renderWalkStep(); }
+  });
+  window.addEventListener('resize', function(){ if (walkEl) renderWalkStep(); });
+
+  /* deep link: <spec>.html#walk=<flowIndex>[.<stepIndex>] opens the walkthrough.
+     Deferred to after `load` — opening mid-parse races the thumbnail iframe
+     navigations and can leave frames unpainted. */
+  var wm = location.hash.match(/walk=(\d+)(?:\.(\d+))?/);
+  if (wm && flows[+wm[1]]) {
+    window.addEventListener('load', function(){
+      openWalk(+wm[1]);
+      var si = +(wm[2] || 0);
+      if (si > 0 && si < walkFlow.steps.length) { walkIdx = si; renderWalkStep(); }
+    });
+  }
+})();
+</script>
+</body>
+</html>
