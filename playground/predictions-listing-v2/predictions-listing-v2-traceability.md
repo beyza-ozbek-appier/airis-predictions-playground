@@ -1,0 +1,33 @@
+# Traceability matrix — Predictions Listing v2
+
+Full per-flow detail (entry point, steps, branches, error paths) lives in [`predictions-listing-v2-user-flows.html`](predictions-listing-v2-user-flows.html) — this matrix is the compact spec-requirement → implementation index. `UF-##` ids cross-reference that document; `#state=` ids are real, reproducible states in the prototype.
+
+| Spec requirement | User-flow step (UF-##) | Figma frame / node | HTML implementation | Status |
+|---|---|---|---|---|
+| 5 prediction statuses, one shared badge component | UF-01, UF-07 | Statuses, [354:30741](https://www.figma.com/design/8MTdgBEhjTTdSlU8ilrmlZ/Behavior-Predictions-DS3.0?node-id=354-30741) | `.status-pill` + `statusPillInnerHtml()` | ✅ Implemented |
+| Status badge corner radius | — | *Status/Status instance, [354:30744](https://www.figma.com/design/8MTdgBEhjTTdSlU8ilrmlZ/Behavior-Predictions-DS3.0?node-id=354-30744) (verified 8px, token `r8-(m)`) | `.status-pill{border-radius:8px}` | ⚠️ Conflicts with documented `radius-4` — see PRD §5 #1 |
+| Empty / cold-start state | UF-02 | [354:31700](https://www.figma.com/design/8MTdgBEhjTTdSlU8ilrmlZ/Behavior-Predictions-DS3.0?node-id=354-31700) | `#emptyStatePanel` + `setPredictionsListEmpty()` | ✅ Implemented (added in this playground) |
+| Recommendation decision rule (Ready-only, retrain-wins precedence) | UF-20…24 | Menu Actions/Warnings [585:27986](https://www.figma.com/design/8MTdgBEhjTTdSlU8ilrmlZ/Behavior-Predictions-DS3.0?node-id=585-27986), EXAMPLE SCENARIO [631:27327](https://www.figma.com/design/8MTdgBEhjTTdSlU8ilrmlZ/Behavior-Predictions-DS3.0?node-id=631-27327) | `getPredictionRecommendation(row)` | ✅ Implemented |
+| Recommendation badge on listing (under date column) | UF-20 | Note 585:28378(a) | `recBadgeHtml()` in `renderRows()` | ✅ Implemented |
+| Recommendation tooltip | UF-21 | tooltips [626:42298](https://www.figma.com/design/8MTdgBEhjTTdSlU8ilrmlZ/Behavior-Predictions-DS3.0?node-id=626-42298) | `showMenuTooltip()`/`hideMenuTooltip()`, Escape-dismiss | ✅ Implemented |
+| Act on Retraining recommendation | UF-22 | Retrain dialog [369:35274](https://www.figma.com/design/8MTdgBEhjTTdSlU8ilrmlZ/Behavior-Predictions-DS3.0?node-id=369-35274) | `handleRowMenuAction('retrain', id)` → `openRowActionDialog` | ✅ Implemented (dialog only, see limitation below) |
+| Act on Refresh recommendation | UF-23 | Toast [370:38199](https://www.figma.com/design/8MTdgBEhjTTdSlU8ilrmlZ/Behavior-Predictions-DS3.0?node-id=370-38199) | `handleRowMenuAction('refresh', id)` → `showToast` | ✅ Implemented, fully wired |
+| Recommendation banner on detail page | UF-24 | Note 585:28378(b) | `renderRecommendationBanner('detail', row)` | ✅ Implemented |
+| Row menu: Refresh / Retrain / Activity log / Archive-Unarchive / Delete | UF-10…19 | Menu Actions/Actions [354:30715](https://www.figma.com/design/8MTdgBEhjTTdSlU8ilrmlZ/Behavior-Predictions-DS3.0?node-id=354-30715), Details note [443:57304](https://www.figma.com/design/8MTdgBEhjTTdSlU8ilrmlZ/Behavior-Predictions-DS3.0?node-id=443-57304) | `buildRowMenuHtml()` | ✅ Implemented |
+| Retrain disabled (status / cooldown) | UF-13, UF-18 | [372:39812](https://www.figma.com/design/8MTdgBEhjTTdSlU8ilrmlZ/Behavior-Predictions-DS3.0?node-id=372-39812) / [372:39813](https://www.figma.com/design/8MTdgBEhjTTdSlU8ilrmlZ/Behavior-Predictions-DS3.0?node-id=372-39813) | `getRetrainInfo(row)` | ✅ Implemented |
+| Archive/Delete disabled while Training | UF-18 | [638:28986](https://www.figma.com/design/8MTdgBEhjTTdSlU8ilrmlZ/Behavior-Predictions-DS3.0?node-id=638-28986) / [638:29136](https://www.figma.com/design/8MTdgBEhjTTdSlU8ilrmlZ/Behavior-Predictions-DS3.0?node-id=638-29136) | `getArchiveInfo(row)` / `getDeleteInfo(row)` | ✅ Implemented |
+| Archive/Delete disabled while Refreshing | UF-19 | *(none — inferred extension)* | Same functions, `status === 'refreshing'` branch | ⚠️ Inferred, not Figma-confirmed |
+| Activity log | UF-14 | [354:30762](https://www.figma.com/design/8MTdgBEhjTTdSlU8ilrmlZ/Behavior-Predictions-DS3.0?node-id=354-30762) | `openActivityLog()` | ✅ Implemented |
+| Unarchive dialog copy | UF-16 | [372:41253](https://www.figma.com/design/8MTdgBEhjTTdSlU8ilrmlZ/Behavior-Predictions-DS3.0?node-id=372-41253) (self-contradictory) | `ROW_ACTION_CONTENT.unarchive` | ⚠️ Inferred — Figma copy unusable |
+| Create prediction (setup + goal events + schedule) | UF-03…05 | Create Prediction [354:32145](https://www.figma.com/design/8MTdgBEhjTTdSlU8ilrmlZ/Behavior-Predictions-DS3.0?node-id=354-32145) | `renderOnePageLayout()`, `runOnePageValidation()` | ✅ Implemented; 🟡 no inline errors (by design), date-only pickers (documented deviation) |
+| Edit restriction (name/description/schedule only) | UF-08 | Note [443:57305](https://www.figma.com/design/8MTdgBEhjTTdSlU8ilrmlZ/Behavior-Predictions-DS3.0?node-id=443-57305) | `applyWizEditRestriction()` | ✅ Implemented (exact match) |
+| Edit refresh schedule (direct entry) | UF-09 | Note 443:57304 (concept only) | `openEditRefreshSchedule()` → `resetWizardForEdit(row, 2)` | ✅ Implemented (mechanic HTML-confirmed) |
+| Search / filters / sort / pagination / export | UF-25 | Structural only, [585:31222](https://www.figma.com/design/8MTdgBEhjTTdSlU8ilrmlZ/Behavior-Predictions-DS3.0?node-id=585-31222) | No handlers wired | ❌ Not implemented — documented prototype limitation |
+| Segments recommendation indicator | EX-01 | Note 585:28378(c), [443:57139](https://www.figma.com/design/8MTdgBEhjTTdSlU8ilrmlZ/Behavior-Predictions-DS3.0?node-id=443-57139) | N/A | 🚫 Explicitly out of scope — no Segments feature exists |
+| "Reminders" Figma section | EX-02 | [602:35125](https://www.figma.com/design/8MTdgBEhjTTdSlU8ilrmlZ/Behavior-Predictions-DS3.0?node-id=602-35125) | N/A | 🚫 Excluded — ambiguous/unrelated scope |
+| Retrain/Archive/Unarchive/Delete post-confirm mutation | UF-12, 15, 16, 17 | N/A (pre-existing prototype gap) | `closeRowActionDialog()` only | ❌ Not implemented — documented prototype limitation |
+| Retrain failure → Failed status | UF-12, UF-22 | Note [354:30713](https://www.figma.com/design/8MTdgBEhjTTdSlU8ilrmlZ/Behavior-Predictions-DS3.0?node-id=354-30713) | N/A | ❌ Not implemented — see interactive spec error E6 |
+
+**Legend:** ✅ implemented · ⚠️ implemented with a documented conflict/inference · 🟡 implemented with a noted, approved deviation · ❌ documented, not implemented · 🚫 explicitly excluded.
+
+See the PRD (`predictions-listing-v2-prd.md` §5–8) for the full reasoning behind every ⚠️/❌/🚫 row, and the user-flows document's "Figma coverage audit" table for every Figma node reviewed, not just the ones with a direct spec requirement.

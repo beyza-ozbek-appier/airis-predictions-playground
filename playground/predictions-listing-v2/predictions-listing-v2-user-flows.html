@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Predictions Listing v2 — Exhaustive User-Flow Inventory</title>
+<style>
+  :root{
+    --ink:#1B1F2A; --ink-soft:#3A4152; --body:#4A5164; --muted:#8A91A3;
+    --bg:#F2F3F6; --card:#FFFFFF; --line:#E2E5EC; --line-soft:#EDEFF4;
+    --accent:#5C93FF; --accent-ink:#2F66D0;
+    --ok:#2E9E63; --ok-bg:#E7F6EE; --warn:#B77816; --warn-bg:#FCF3E2;
+    --bad:#B03A3A; --bad-bg:#FBE9E9; --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{background:var(--bg);color:var(--body);font:400 14px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif;}
+  a{color:var(--accent-ink);}
+
+  header.page{background:var(--ink);color:#fff;padding:28px 40px 24px;}
+  .kicker{display:inline-flex;align-items:center;gap:8px;font:700 11px/1 var(--mono);letter-spacing:1.6px;color:#9FB6E8;text-transform:uppercase;}
+  .kicker .dot{width:7px;height:7px;border-radius:50%;background:var(--accent);}
+  h1{font-size:24px;font-weight:700;line-height:1.25;margin-top:10px;color:#fff;}
+  .lede{margin-top:10px;font-size:13px;color:#C9CEDA;max-width:820px;line-height:1.6;}
+
+  main{max-width:1240px;margin:0 auto;padding:28px 32px 70px;}
+
+  .summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:32px;}
+  .stat{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px;}
+  .stat b{display:block;font-size:24px;color:var(--ink);}
+  .stat span{font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;}
+
+  nav.toc{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px 20px;margin-bottom:32px;font-size:13px;}
+  nav.toc h2{font-size:13px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:8px;}
+  nav.toc ul{list-style:none;display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:4px 16px;}
+  nav.toc a{text-decoration:none;font-weight:600;}
+  nav.toc a:hover{text-decoration:underline;}
+
+  section.cat{margin-bottom:40px;}
+  section.cat > h2{font-size:18px;font-weight:700;color:var(--ink);margin-bottom:4px;scroll-margin-top:16px;}
+  section.cat > .cat-sub{font-size:13px;color:var(--muted);margin-bottom:16px;}
+
+  .flow{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px 22px 20px;margin-bottom:16px;scroll-margin-top:16px;}
+  .flow-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:8px;}
+  .flow-head h3{font-size:15.5px;font-weight:700;color:var(--ink);}
+  .flow-id{font:600 11px/1 var(--mono);color:var(--muted);}
+  .pill{display:inline-flex;align-items:center;height:19px;padding:0 8px;border-radius:10px;font:700 10.5px/1 var(--mono);letter-spacing:.2px;white-space:nowrap;}
+  .pill.impl{background:var(--ok-bg);color:var(--ok);}
+  .pill.partial{background:var(--warn-bg);color:var(--warn);}
+  .pill.not-impl{background:var(--bad-bg);color:var(--bad);}
+  .pill.src{background:#EDEFF4;color:var(--ink-soft);}
+  .flow-goal{font-size:13.5px;color:var(--ink-soft);font-weight:600;margin-bottom:12px;}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:4px 28px;}
+  @media (max-width:760px){.grid2{grid-template-columns:1fr;}}
+  dl.meta{font-size:13px;}
+  dl.meta dt{font-weight:700;color:var(--ink-soft);margin-top:10px;font-size:11.5px;text-transform:uppercase;letter-spacing:.3px;}
+  dl.meta dd{margin:3px 0 0;color:var(--body);}
+  dl.meta ol, dl.meta ul{margin:2px 0 0 18px;}
+  dl.meta li{margin-bottom:2px;}
+  .figma-link{font:600 12px/1 var(--mono);}
+  .state-link{font:600 12px/1.4 var(--mono);}
+
+  .excl{background:#FCF3E2;border:1px solid #F0DCA8;border-radius:12px;padding:16px 20px;margin-bottom:14px;}
+  .excl h3{font-size:14.5px;color:var(--warn);margin-bottom:6px;}
+
+  table.states{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden;font-size:13px;}
+  table.states th{background:var(--line-soft);text-align:left;padding:9px 12px;font:700 11px/1.3 inherit;letter-spacing:.4px;text-transform:uppercase;color:var(--muted);}
+  table.states td{padding:9px 12px;border-top:1px solid var(--line-soft);vertical-align:top;}
+
+  table.audit{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden;font-size:12.5px;}
+  table.audit th{background:var(--line-soft);text-align:left;padding:8px 10px;font:700 10.5px/1.3 inherit;letter-spacing:.3px;text-transform:uppercase;color:var(--muted);white-space:nowrap;}
+  table.audit td{padding:8px 10px;border-top:1px solid var(--line-soft);vertical-align:top;}
+  table.audit td.nid{font:600 11.5px var(--mono);color:var(--muted);white-space:nowrap;}
+  .audit-wrap{overflow-x:auto;border-radius:12px;}
+
+  footer.page{max-width:1240px;margin:0 auto;padding:0 32px 50px;font-size:12px;color:var(--muted);line-height:1.6;}
+</style>
+</head>
+<body>
+
+<header class="page">
+  <span class="kicker"><span class="dot"></span>Exhaustive flow inventory — complements the 3-flow interactive spec, does not replace it</span>
+  <h1>Predictions Listing v2 — Exhaustive User-Flow Inventory</h1>
+  <div class="lede">Every flow, subflow, alternative path, and state found in the relevant Figma scope (section <code>354:30391</code>, "Behavior Predictions") — not just the 3 flows the skill-conformant interactive spec is limited to. See <a href="predictions-listing-v2-spec.html" style="color:#9FB6E8">the interactive spec</a> for those, and <a href="predictions-listing-v2-prd.md" style="color:#9FB6E8">the PRD</a> for full conflict/resolution detail.</div>
+</header>
+
+<main>
+
+<div class="summary" id="coverage-summary">
+  <div class="stat"><b>60</b><span>Figma nodes reviewed</span></div>
+  <div class="stat"><b>25</b><span>Flows identified</span></div>
+  <div class="stat"><b>22</b><span>Fully implemented</span></div>
+  <div class="stat"><b>2</b><span>Partially implemented</span></div>
+  <div class="stat"><b>1</b><span>Documented, not implemented</span></div>
+  <div class="stat"><b>2</b><span>Explicit exclusions</span></div>
+  <div class="stat"><b>8</b><span>Open questions</span></div>
+</div>
+
+<nav class="toc">
+  <h2>Contents</h2>
+  <ul>
+    <li><a href="#cat-listing">A. Listing &amp; lifecycle (UF-01…06)</a></li>
+    <li><a href="#cat-detail">B. Detail &amp; edit (UF-07…09)</a></li>
+    <li><a href="#cat-actions">C. Row actions (UF-10…19)</a></li>
+    <li><a href="#cat-reco">D. Recommendations (UF-20…24)</a></li>
+    <li><a href="#cat-nonfunc">E. Non-functional controls (UF-25)</a></li>
+    <li><a href="#cat-states">F. Cross-cutting states catalog</a></li>
+    <li><a href="#cat-excluded">G. Explicitly excluded</a></li>
+    <li><a href="#cat-audit">Figma coverage audit</a></li>
+  </ul>
+</nav>
+
+<!-- ======================= CATEGORY A ======================= -->
+<section class="cat" id="cat-listing">
+  <h2>A. Listing &amp; lifecycle</h2>
+  <div class="cat-sub">Entering the feature, recovering from having nothing yet, and getting to a specific prediction.</div>
+
+  <article class="flow" id="UF-01">
+    <div class="flow-head"><span class="flow-id">UF-01</span><h3>View the populated Predictions listing</h3>
+      <span class="pill impl">Implemented</span><span class="pill src">Figma-confirmed</span></div>
+    <div class="flow-goal">Goal: see all existing predictions, their status, type, and dates at a glance.</div>
+    <div class="grid2"><dl class="meta">
+      <dt>Entry point</dt><dd>Left nav "Predictions" item, or any deep link back to the listing.</dd>
+      <dt>Preconditions</dt><dd>At least one prediction exists.</dd>
+      <dt>Steps</dt><dd><ol>
+        <li>Navigate to Predictions.</li>
+        <li>Table renders all rows: Name, Status, Prediction type, Last train date, Last Inference date, Created.</li>
+        <li>Recommendation badges (if any) render under the relevant date column on Ready rows.</li>
+      </ol></dd>
+      <dt>Decision / branch points</dt><dd>None — this is the default landing render.</dd>
+    </dl><dl class="meta">
+      <dt>Alternative paths</dt><dd>If zero predictions exist, see UF-02 instead.</dd>
+      <dt>Exit / success condition</dt><dd>User can see and act on every existing prediction.</dd>
+      <dt>Error / recovery paths</dt><dd>None modeled — no load-failure state exists in this prototype (open question, see PRD).</dd>
+      <dt>Figma reference</dt><dd>"Predictions list" (populated), <a class="figma-link" href="https://www.figma.com/design/8MTdgBEhjTTdSlU8ilrmlZ/Behavior-Predictions-DS3.0?node-id=585-31222" target="_blank">585:31222 ↗</a></dd>
+      <dt>Prototype state</dt><dd><span class="state-link">#state=ll-3-populated</span> — <a href="predictions-listing-v2.html#state=ll-3-populated" target="_blank">open</a> · <a href="snapshots/ll-3-populated.png" target="_blank">snapshot</a></dd>
+    </dl></div>
+  </article>
+
+  <article class="flow" id="UF-02">
+    <div class="flow-head"><span class="flow-id">UF-02</span><h3>View the empty / cold-start state</h3>
+      <span class="pill impl">Implemented (added in this playground)</span><span class="pill src">Figma-confirmed</span></div>
+    <div class="flow-goal">Goal: a new account with zero predictions understands what to do next.</div>
+    <div class="grid2"><dl class="meta">
+      <dt>Entry point</dt><dd>Same nav entry as UF-01, but no predictions exist yet.</dd>
+      <dt>Preconditions</dt><dd>Zero predictions.</dd>
+      <dt>Steps</dt><dd><ol>
+        <li>Navigate to Predictions.</li>
+        <li>Table, toolbar, and pagination are hidden.</li>
+        <li>An empty-box icon, "You haven't created any prediction yet," and a secondary "Create prediction" button are shown instead.</li>
+      </ol></dd>
+      <dt>Decision / branch points</dt><dd>None.</dd>
+    </dl><dl class="meta">
+      <dt>Alternative paths</dt><dd>→ UF-03 (create from here).</dd>
+      <dt>Exit / success condition</dt><dd>User understands there's nothing yet and how to start.</dd>
+      <dt>Error / recovery paths</dt><dd>N/A.</dd>
+      <dt>Figma reference</dt><dd>"Predictions list" (empty/cold-start), <a class="figma-link" href="https://www.figma.com/design/8MTdgBEhjTTdSlU8ilrmlZ/Behavior-Predictions-DS3.0?node-id=354-31700" target="_blank">354:31700 ↗</a>. Note <code>354:31698</code> ("PM Notes") flags this scenario as still-evolving pricing-dependent design.</dd>
+      <dt>Prototype state</dt><dd><span class="state-link">#state=ll-1-empty</span> — <a href="predictions-listing-v2.html#state=ll-1-empty" target="_blank">open</a> · <a href="snapshots/ll-1-empty.png" target="_blank">snapshot</a></dd>
+    </dl></div>
+  </article>
+
+  <article class="flow" id="UF-03">
+    <div class="flow-head"><span class="flow-id">UF-03</span><h3>Create the first prediction from the empty state</h3>
+      <span class="pill impl">Implemented</span><span class="pill src">Figma-confirmed entry + HTML-confirmed flow</span></div>
+    <div class="flow-goal">Goal: get a first-time user into the creation wizard.</div>
+    <div class="grid2"><dl class="meta">
+      <dt>Entry point</dt><dd>Secondary "Create prediction" button inside the empty-state panel.</dd>
+      <dt>Preconditions</dt><dd>Zero predictions (UF-02 active).</dd>
+      <dt>Steps</dt><dd><ol><li>Click "Create prediction."</li><li>Wizard opens (one-page mode: Setup + Schedule together) — see UF-05.</li></ol></dd>
+      <dt>Decision / branch points</dt><dd>None distinct from UF-04 once the wizard is open — they converge.</dd>
+    </dl><dl class="meta">
+      <dt>Alternative paths</dt><dd>Cancel → back to empty state.</dd>
+      <dt>Exit / success condition</dt><dd>Converges into UF-05.</dd>
+      <dt>Error / recovery paths</dt><dd>See UF-05.</dd>
+      <dt>Figma reference</dt><dd>Entry button confirmed on 354:31700; target screen is "Create Prediction," <a class="figma-link" href="https://www.figma.com/design/8MTdgBEhjTTdSlU8ilrmlZ/Behavior-Predictions-DS3.0?node-id=354-32145" target="_blank">354:32145 ↗</a></dd>
+      <dt>Prototype state</dt><dd><span class="state-link">#state=ll-2-create-open</span> — <a href="predictions-listing-v2.html#state=ll-2-create-open" target="_blank">open</a> · <a href="snapshots/ll-2-create-open.png" target="_blank">snapshot</a></dd>
+    </dl></div>
+  </article>
+
+  <article class="flow" id="UF-04">
+    <div class="flow-head"><span class="flow-id">UF-04</span><h3>Create a prediction from the populated listing</h3>
+      <span class="pill impl">Implemented</span><span class="pill src">Figma-confirmed</span></div>
+    <div class="flow-goal">Goal: start a new prediction while others already exist.</div>
+    <div class="grid2"><dl class="meta">
+      <dt>Entry point</dt><dd>Primary "Create prediction" button, top-right of the page header (present in both empty and populated states).</dd>
+      <dt>Preconditions</dt><dd>None.</dd>
+      <dt>Steps</dt><dd><ol><li>Click "Create prediction."</li><li>Wizard opens — converges into UF-05.</li></ol></dd>
+      <dt>Decision / branch points</dt><dd>None.</dd>
+    </dl><dl class="meta">
+      <dt>Alternative paths</dt><dd>Cancel → back to populated list.</dd>
+      <dt>Exit / success condition</dt><dd>Converges into UF-05.</dd>
+      <dt>Error / recovery paths</dt><dd>See UF-05.</dd>
+      <dt>Figma reference</dt><dd>Header button, 585:31222; target screen 354:32145 (same as UF-03).</dd>
+      <dt>Prototype state</dt><dd><span class="state-link">#state=ll-2-create-open</span> — same state as UF-03 (identical target).</dd>
+    </dl></div>
+  </article>
+
+  <article class="flow" id="UF-05">
+    <div class="flow-head"><span class="flow-id">UF-05</span><h3>Complete and validate the creation form</h3>
+      <span class="pill partial">Partially implemented</span><span class="pill src">Figma-confirmed + 1 documented deviation</span></div>
+    <div class="flow-goal">Goal: fill in a valid prediction and be able to save it.</div>
+    <div class="grid2"><dl class="meta">
+      <dt>Entry point</dt><dd>Wizard opened via UF-03/UF-04.</dd>
+      <dt>Preconditions</dt><dd>None.</dd>
+      <dt>Steps</dt><dd><ol>
+        <li>Enter prediction name (required) and optional description.</li>
+        <li>Pick prediction type: Likely / Unlikely to perform.</li>
+        <li>Set prediction window (7–90 days).</li>
+        <li>Add ≥1 goal event (required), up to 10 total — counter shown as "(n/10)."</li>
+        <li>Add constraints per goal event (attribute / operator / value / occurrence).</li>
+        <li>Choose whether to schedule automatic refreshes (Yes/No).</li>
+        <li>If Yes: pick One-time (single run date) or Recurring (Daily / Every 7–29 days / Monthly + Start date + End date).</li>
+        <li>Save button enables once name + ≥1 goal event + (if scheduled) valid schedule fields are all present.</li>
+      </ol></dd>
+      <dt>Decision / branch points</dt><dd>Schedule Yes/No; One-time vs. Recurring; Recurring frequency (Daily / Every-X-days / Monthly); goal-event count (1–10).</dd>
+    </dl><dl class="meta">
+      <dt>Alternative paths</dt><dd>Cancel at any point → discard, return to listing.</dd>
+      <dt>Exit / success condition</dt><dd>Save enabled and clicked → loading state → new row appears with status "Training" → toast.</dd>
+      <dt>Error / recovery paths</dt><dd>This "B" variant shows <b>no inline field error messages</b> — an explicit, earlier-approved product decision; the Save button's disabled state is the only validation signal (documented in the PRD, not a gap). Start date cannot be in the past; End date must be after Start date (both enforced, matching Figma Note <code>441:49634</code>). Dates are limited to the client's contract period (matching Figma Note <code>354:32682</code>, marked "✅" done in Figma).</dd>
+      <dt>Figma reference</dt><dd>"Create Prediction," <a class="figma-link" href="https://www.figma.com/design/8MTdgBEhjTTdSlU8ilrmlZ/Behavior-Predictions-DS3.0?node-id=354-32145" target="_blank">354:32145 ↗</a>. Notes: goal-event max 10 (<code>503:27603</code>), Start/End date rules (<code>441:49634</code>), contract-period limiting (<code>354:32682</code>), Every-X-days range 7–29 (<code>649:29353</code>), timezone hint (<code>506:28123</code>).</dd>
+      <dt>Prototype state</dt><dd><span class="state-link">#state=ll-2-create-open</span> — <a href="predictions-listing-v2.html#state=ll-2-create-open" target="_blank">open</a> · <a href="snapshots/ll-2-create-open.png" target="_blank">snapshot</a></dd>
+      <dt>Documented deviation</dt><dd>Figma Note <code>441:49634</code> calls for a <b>date and time</b> picker on Start/End date; this prototype uses <b>date-only</b> pickers. This was an explicit, approved change made earlier in this project (removing time-selection controls fixed a bug where date picks were silently dropped) — a deliberate override of this one Figma note, not an oversight.</dd>
+    </dl></div>
+  </article>
+
+  <article class="flow" id="UF-06">
+    <div class="flow-head"><span class="flow-id">UF-06</span><h3>Open a prediction</h3>
+      <span class="pill impl">Implemented</span><span class="pill src">HTML-confirmed</span></div>
+    <div class="flow-goal">Goal: drill into one prediction's full details.</div>
+    <div class="grid2"><dl class="meta">
+      <dt>Entry point</dt><dd>Click the prediction's name (a link) in the listing table.</dd>
+      <dt>Preconditions</dt><dd>≥1 prediction exists (UF-01).</dd>
+      <dt>Steps</dt><dd><ol><li>Click the name link.</li><li>Detail page renders (UF-07).</li></ol></dd>
+      <dt>Decision / branch points</dt><dd>None.</dd>
+    </dl><dl class="meta">
+      <dt>Alternative paths</dt><dd>Breadcrumb "Predictions" link returns to the list.</dd>
+      <dt>Exit / success condition</dt><dd>Detail page shown.</dd>
+      <dt>Error / recovery paths</dt><dd>None modeled.</dd>
+      <dt>Figma reference</dt><dd>No explicit prototype-connection arrow was found from the list row to the "Details" frame — inferred from the "Details" frame's existence and the name column being styled as a link. <b>Recorded as an inferred transition</b>, not literally confirmed by a Figma connector.</dd>
+      <dt>Prototype state</dt><dd>Converges into <span class="state-link">#state=ll-4-detail</span>.</dd>
+    </dl></div>
+  </article>
+</section>
+
+<!-- ======================= CATEGORY B ======================= -->
+<section class="cat" id="cat-detail">
+  <h2>B. Detail &amp; edit</h2>
+  <div class="cat-sub">Viewing one prediction in full, and changing what's allowed to change.</div>
+
+  <article class="flow" id="UF-07">
+    <div class="flow-head"><span class="flow-id">UF-07</span><h3>View prediction details</h3>
+      <span class="pill impl">Implemented</span><span class="pill src">Figma-confirmed</span></div>
+    <div class="flow-goal">Goal: see everything about one prediction in one place.</div>
+    <div class="grid2"><dl class="meta">
+      <dt>Entry point</dt><dd>UF-06.</dd>
+      <dt>Preconditions</dt><dd>A prediction exists and is selected.</dd>
+      <dt>Steps</dt><dd><ol>
+        <li>Header: name, status badge, Edit button, More (kebab) button.</li>
+        <li>If Ready with an active recommendation: persistent banner (UF-24).</li>
+        <li>Sections: Prediction info, Prediction settings, Goal events, Schedule.</li>
+      </ol></dd>
+      <dt>Decision / branch points</dt><dd>Banner shown only if a recommendation is active.</dd>
+    </dl><dl class="meta">
+      <dt>Alternative paths</dt><dd>Edit → UF-08. More menu → same actions as the row kebab menu (UF-10…17).</dd>
+      <dt>Exit / success condition</dt><dd>User has full context on the prediction.</dd>
+      <dt>Error / recovery paths</dt><dd>None modeled.</dd>
+      <dt>Figma reference</dt><dd>"Prediction - Detail," <a class="figma-link" href="https://www.figma.com/design/8MTdgBEhjTTdSlU8ilrmlZ/Behavior-Predictions-DS3.0?node-id=443-57224" target="_blank">443:57224 ↗</a> (parent "Details," 443:54890). Note <code>443:57304</code> confirms Edit + More-menu action list verbatim.</dd>
+      <dt>Prototype state</dt><dd><span class="state-link">#state=ll-4-detail</span> — <a href="predictions-listing-v2.html#state=ll-4-detail" target="_blank">open</a> · <a href="snapshots/ll-4-detail.png" target="_blank">snapshot</a> (no recommendation); <span class="state-link">#state=dd-2-detail-banner</span> for the with-banner case.</dd>
+    </dl></div>
+  </article>
+
+  <article class="flow" id="UF-08">
+    <div class="flow-head"><span class="flow-id">UF-08</span><h3>Edit a prediction</h3>
+      <span class="pill impl">Implemented</span><span class="pill src">Figma-confirmed (exact match)</span></div>
+    <div class="flow-goal">Goal: change what's still safely editable after a prediction is saved.</div>
+    <div class="grid2"><dl class="meta">
+      <dt>Entry point</dt><dd>Row pencil icon, or the detail page's "Edit" button.</dd>
+      <dt>Preconditions</dt><dd>Prediction already saved (any status).</dd>
+      <dt>Steps</dt><dd><ol>
+        <li>Open the wizard for this row, pre-filled.</li>
+        <li>Name, description, and refresh schedule are editable.</li>
+        <li>Prediction type, prediction window, and goal events are shown but locked (read-only).</li>
+        <li>Save → same validation as UF-05, applied to the editable fields.</li>
+      </ol></dd>
+      <dt>Decision / branch points</dt><dd>None — the lock rule is unconditional once editing an existing row.</dd>
+    </dl><dl class="meta">
+      <dt>Alternative paths</dt><dd>Cancel → discard, return to wherever Edit was opened from.</dd>
+      <dt>Exit / success condition</dt><dd>Save → toast "…has been updated." → listing/detail re-renders.</dd>
+      <dt>Error / recovery paths</dt><dd>Same as UF-05 for the fields that remain editable.</dd>
+      <dt>Figma reference</dt><dd>Note <code>443:57305</code> ("Edit"), verbatim: <i>"User can edit only schedule, name, description after prediction is saved. Show other areas as disabled."</i> — this is an exact match to the implementation.</dd>
+      <dt>Prototype state</dt><dd><span class="state-link">#state=edit-1-open</span> — <a href="predictions-listing-v2.html#state=edit-1-open" target="_blank">open</a> · <a href="snapshots/edit-1-open.png" target="_blank">snapshot</a></dd>
+    </dl></div>
+  </article>
+
+  <article class="flow" id="UF-09">
+    <div class="flow-head"><span class="flow-id">UF-09</span><h3>Edit the refresh schedule</h3>
+      <span class="pill impl">Implemented</span><span class="pill src">HTML-confirmed mechanic, Figma-confirmed concept</span></div>
+    <div class="flow-goal">Goal: jump straight to changing just the schedule, without walking through the whole edit wizard.</div>
+    <div class="grid2"><dl class="meta">
+      <dt>Entry point</dt><dd>Row kebab menu → Refresh submenu → "Edit refresh schedule."</dd>
+      <dt>Preconditions</dt><dd>Prediction already saved.</dd>
+      <dt>Steps</dt><dd><ol><li>Open the row menu, hover Refresh.</li><li>Click "Edit refresh schedule."</li><li>Edit wizard opens directly on the Schedule step (step 2), same lock rules as UF-08.</li></ol></dd>
+      <dt>Decision / branch points</dt><dd>Same schedule-type branches as UF-05.</dd>
+    </dl><dl class="meta">
+      <dt>Alternative paths</dt><dd>Back → Setup step (still locked, per UF-08). Cancel → discard.</dd>
+      <dt>Exit / success condition</dt><dd>Same as UF-08.</dd>
+      <dt>Error / recovery paths</dt><dd>Same as UF-05's schedule validation.</dd>
+      <dt>Figma reference</dt><dd>Figma confirms this exists as a concept — the row menu lists "Refresh (Refresh now, Edit refresh schedule)" per Note <code>443:57304</code> — but no Figma frame was found showing the direct jump-to-step-2 mechanic itself; that specific behavior is <b>HTML-confirmed</b>, not independently pictured in Figma.</dd>
+      <dt>Prototype state</dt><dd><span class="state-link">#state=edit-2-schedule</span> — <a href="predictions-listing-v2.html#state=edit-2-schedule" target="_blank">open</a> · <a href="snapshots/edit-2-schedule.png" target="_blank">snapshot</a></dd>
+    </dl></div>
+  </article>
+</section>
+
+<!-- ======================= CATEGORY C ======================= -->
+<section class="cat" id="cat-actions">
+  <h2>C. Row actions</h2>
+  <div class="cat-sub">Everything reachable from the kebab menu, on a row or from the detail page's More button (same menu, same rules).</div>
+
+  <article class="flow" id="UF-10">
+    <div class="flow-head"><span class="flow-id">UF-10</span><h3>Refresh now</h3>
+      <span class="pill impl">Implemented</span><span class="pill src">Figma-confirmed (exact toast copy)</span></div>
+    <div class="flow-goal">Goal: re-run inference immediately with the current model.</div>
+    <div class="grid2"><dl class="meta">
+      <dt>Entry point</dt><dd>Row/detail kebab menu → Refresh → "Refresh now."</dd>
+      <dt>Preconditions</dt><dd>None — always available regardless of status.</dd>
+      <dt>Steps</dt><dd><ol><li>Open menu, hover Refresh (opens submenu).</li><li>Click "Refresh now."</li><li>Menu closes; toast appears.</li></ol></dd>
+      <dt>Decision / branch points</dt><dd>None.</dd>
+    </dl><dl class="meta">
+      <dt>Alternative paths</dt><dd>"Edit refresh schedule" instead → UF-09.</dd>
+      <dt>Exit / success condition</dt><dd>Toast: "%name% starts to being refreshed" (verbatim Figma copy, including its grammar).</dd>
+      <dt>Error / recovery paths</dt><dd>None simulated — no failure path exists for Refresh in this prototype.</dd>
+      <dt>Figma reference</dt><dd>Toast copy confirmed on "Predictions list" + Toast, <a class="figma-link" href="https://www.figma.com/design/8MTdgBEhjTTdSlU8ilrmlZ/Behavior-Predictions-DS3.0?node-id=370-38199" target="_blank">370:38199 ↗</a>.</dd>
+      <dt>Prototype state</dt><dd>Toast result shown via <span class="state-link">#state=dd-3-refresh-toast</span> (triggered from the detail banner, same underlying function as the row-menu path).</dd>
+    </dl></div>
+  </article>
+
+  <article class="flow" id="UF-11">
+    <div class="flow-head"><span class="flow-id">UF-11</span><h3>Open scheduled-refresh controls</h3>
+      <span class="pill impl">Implemented</span><span class="pill src">HTML-confirmed, Figma-confirmed submenu existence</span></div>
+    <div class="flow-goal">Goal: see the two refresh-related actions grouped together.</div>
+    <div class="grid2"><dl class="meta">
+      <dt>Entry point</dt><dd>Row/detail kebab menu → hover "Refresh."</dd>
+      <dt>Preconditions</dt><dd>None.</dd>
+      <dt>Steps</dt><dd><ol><li>Open the row menu.</li><li>Hover "Refresh" — a submenu opens listing "Edit refresh schedule" and "Refresh now."</li></ol></dd>
+      <dt>Decision / branch points</dt><dd>Choose one of the two submenu items.</dd>
+    </dl><dl class="meta">
+      <dt>Alternative paths</dt><dd>→ UF-09 or UF-10.</dd>
+      <dt>Exit / success condition</dt><dd>Submenu visible, positioned to stay on-screen.</dd>
+      <dt>Error / recovery paths</dt><dd>N/A.</dd>
+      <dt>Figma reference</dt><dd>"Refresh Menu," <a class="figma-link" href="https://www.figma.com/design/8MTdgBEhjTTdSlU8ilrmlZ/Behavior-Predictions-DS3.0?node-id=372-39811" target="_blank">372:39811 ↗</a> — confirms the submenu but labels its second item "Schedule refresh"; this prototype labels it "Edit refresh schedule." Same intent, different label — a pre-existing, undocumented-until-now minor copy drift, not changed here.</dd>
+      <dt>Prototype state</dt><dd><span class="state-link">#state=sup-1-refresh-submenu</span> — <a href="predictions-listing-v2.html#state=sup-1-refresh-submenu" target="_blank">open</a> · <a href="snapshots/sup-1-refresh-submenu.png" target="_blank">snapshot</a></dd>
+    </dl></div>
+  </article>
+
+  <article class="flow" id="UF-12">
+    <div class="flow-head"><span class="flow-id">UF-12</span><h3>Retrain a prediction</h3>
+      <span class="pill impl">Implemented</span><span class="pill src">Figma-confirmed (exact copy match)</span></div>
+    <div class="flow-goal">Goal: train a new model version on the latest available data.</div>
+    <div class="grid2"><dl class="meta">
+      <dt>Entry point</dt><dd>Row/detail kebab menu → "Retrain model" (when enabled).</dd>
+      <dt>Preconditions</dt><dd>Status = Ready AND last retrained ≥7 days ago (see UF-13 for the disabled cases).</dd>
+      <dt>Steps</dt><dd><ol><li>Open menu.</li><li>Click "Retrain model."</li><li>Confirm dialog opens.</li><li>Confirm → dialog closes.</li></ol></dd>
+      <dt>Decision / branch points</dt><dd>Confirm vs. Cancel.</dd>
+    </dl><dl class="meta">
+      <dt>Alternative paths</dt><dd>Cancel → no change.</dd>
+      <dt>Exit / success condition</dt><dd><b>Prototype limitation:</b> confirming closes the dialog only — no status change, no toast, no simulated 1–2 hour job. Documented in the PRD, not silently hidden.</dd>
+      <dt>Error / recovery paths</dt><dd>Not implemented. Figma Note <code>354:30713</code> confirms a failed retrain should move the model to "Failed" status, but no UI/copy exists for it (see the interactive spec's error E6).</dd>
+      <dt>Figma reference</dt><dd>Confirm dialog, <a class="figma-link" href="https://www.figma.com/design/8MTdgBEhjTTdSlU8ilrmlZ/Behavior-Predictions-DS3.0?node-id=369-35274" target="_blank">369:35274 ↗</a> — exact copy match.</dd>
+      <dt>Prototype state</dt><dd><span class="state-link">#state=rt-2-dialog</span> → <span class="state-link">#state=rt-3-confirmed</span> — <a href="predictions-listing-v2.html#state=rt-2-dialog" target="_blank">open</a> · <a href="snapshots/rt-2-dialog.png" target="_blank">snapshot</a></dd>
+    </dl></div>
+  </article>
+
+  <article class="flow" id="UF-13">
+    <div class="flow-head"><span class="flow-id">UF-13</span><h3>Retrain cooldown / disabled behavior</h3>
+      <span class="pill impl">Implemented</span><span class="pill src">Figma-confirmed (both reasons)</span></div>
+    <div class="flow-goal">Goal: understand why Retrain isn't available right now.</div>
+    <div class="grid2"><dl class="meta">
+      <dt>Entry point</dt><dd>Row/detail kebab menu, hover the disabled "Retrain model" item.</dd>
+      <dt>Preconditions</dt><dd>Status ≠ Ready, OR status = Ready but retrained &lt;7 days ago.</dd>
+      <dt>Steps</dt><dd><ol><li>Open menu.</li><li>Retrain model is greyed out.</li><li>Hover → tooltip explains why.</li></ol></dd>
+      <dt>Decision / branch points</dt><dd>Two distinct reasons, two distinct copies: wrong status vs. cooldown.</dd>
+    </dl><dl class="meta">
+      <dt>Alternative paths</dt><dd>None — item is inert, not clickable.</dd>
+      <dt>Exit / success condition</dt><dd>User understands the constraint without guessing.</dd>
+      <dt>Error / recovery paths</dt><dd>N/A — this IS the recovery information.</dd>
+      <dt>Figma reference</dt><dd>"Retrain Rest 2" (wrong status), <a class="figma-link" href="https://www.figma.com/design/8MTdgBEhjTTdSlU8ilrmlZ/Behavior-Predictions-DS3.0?node-id=372-39812" target="_blank">372:39812 ↗</a>; "Retrain Rest 1" (cooldown), <a class="figma-link" href="https://www.figma.com/design/8MTdgBEhjTTdSlU8ilrmlZ/Behavior-Predictions-DS3.0?node-id=372-39813" target="_blank">372:39813 ↗</a>. Note <code>354:30708</code> ("Retrain"): "Only models in 'Ready' statuses can be retrained."</dd>
+      <dt>Prototype state</dt><dd><span class="state-link">#state=dd-1-disabled-tooltip</span> (wrong status) · <span class="state-link">#state=sup-8-retrain-cooldown</span> (cooldown) — <a href="snapshots/dd-1-disabled-tooltip.png" target="_blank">snapshot</a> / <a href="snapshots/sup-8-retrain-cooldown.png" target="_blank">snapshot</a></dd>
+    </dl></div>
+  </article>
+
+  <article class="flow" id="UF-14">
+    <div class="flow-head"><span class="flow-id">UF-14</span><h3>View the Activity log</h3>
+      <span class="pill impl">Implemented</span><span class="pill src">Figma-confirmed</span></div>
+    <div class="flow-goal">Goal: audit who/what changed this prediction and when.</div>
+    <div class="grid2"><dl class="meta">
+      <dt>Entry point</dt><dd>Row/detail kebab menu → "Activity log."</dd>
+      <dt>Preconditions</dt><dd>None — always enabled.</dd>
+      <dt>Steps</dt><dd><ol><li>Click "Activity log."</li><li>Dialog opens: prediction name + table (Updated time, Performed by, Account, Activities).</li><li>Close via × or backdrop click.</li></ol></dd>
+      <dt>Decision / branch points</dt><dd>None.</dd>
+    </dl><dl class="meta">
+      <dt>Alternative paths</dt><dd>None.</dd>
+      <dt>Exit / success condition</dt><dd>User can see the change history.</dd>
+      <dt>Error / recovery paths</dt><dd>None modeled (e.g. no empty-log state).</dd>
+      <dt>Figma reference</dt><dd>"Activity logs," <a class="figma-link" href="https://www.figma.com/design/8MTdgBEhjTTdSlU8ilrmlZ/Behavior-Predictions-DS3.0?node-id=354-30762" target="_blank">354:30762 ↗</a>. Note <code>354:30706</code>: "The list should display the updates from User and System," including Agent-trained-during-session entries.</dd>
+      <dt>Prototype state</dt><dd><span class="state-link">#state=sup-7-activity-log</span> — <a href="predictions-listing-v2.html#state=sup-7-activity-log" target="_blank">open</a> · <a href="snapshots/sup-7-activity-log.png" target="_blank">snapshot</a></dd>
+    </dl></div>
+  </article>
+
+  <article class="flow" id="UF-15">
+    <div class="flow-head"><span class="flow-id">UF-15</span><h3>Archive a prediction</h3>
+      <span class="pill impl">Implemented</span><span class="pill src">Figma-confirmed (one of two variants)</span></div>
+    <div class="flow-goal">Goal: stop a prediction's scheduled runs without deleting it.</div>
+    <div class="grid2"><dl class="meta">
+      <dt>Entry point</dt><dd>Row/detail kebab menu → "Archive" (when enabled).</dd>
+      <dt>Preconditions</dt><dd>Status ≠ Training/Refreshing; status ≠ already Archived.</dd>
+      <dt>Steps</dt><dd><ol><li>Click Archive.</li><li>Confirm dialog opens.</li><li>Confirm → dialog closes.</li></ol></dd>
+      <dt>Decision / branch points</dt><dd>Confirm vs. Cancel.</dd>
+    </dl><dl class="meta">
+      <dt>Alternative paths</dt><dd>Disabled + tooltip if busy — see UF-18.</dd>
+      <dt>Exit / success condition</dt><dd>Prototype limitation: no status mutation on confirm (same caveat as UF-12).</dd>
+      <dt>Error / recovery paths</dt><dd>Not implemented.</dd>
+      <dt>Figma reference</dt><dd>Two Archive-dialog variants exist in Figma with slightly different body wording ("scheduled inference runs" <a class="figma-link" href="https://www.figma.com/design/8MTdgBEhjTTdSlU8ilrmlZ/Behavior-Predictions-DS3.0?node-id=372-41253" target="_blank">372:41253↗</a> vs "scheduled refreshes" <a class="figma-link" href="https://www.figma.com/design/8MTdgBEhjTTdSlU8ilrmlZ/Behavior-Predictions-DS3.0?node-id=372-42464" target="_blank">372:42464↗</a>); the prototype matches the first. Note <code>638:28985</code>: archiving should set the inference schedule to "None" and disable the schedule in the edit flow — <b>not currently reflected</b> in this prototype (open question).</dd>
+      <dt>Prototype state</dt><dd><span class="state-link">#state=sup-2-archive-dialog</span> — <a href="predictions-listing-v2.html#state=sup-2-archive-dialog" target="_blank">open</a> · <a href="snapshots/sup-2-archive-dialog.png" target="_blank">snapshot</a></dd>
+    </dl></div>
+  </article>
+
+  <article class="flow" id="UF-16">
+    <div class="flow-head"><span class="flow-id">UF-16</span><h3>Unarchive a prediction</h3>
+      <span class="pill impl">Implemented</span><span class="pill src">Inferred — Figma's Unarchive frame is self-contradictory</span></div>
+    <div class="flow-goal">Goal: resume a previously archived prediction.</div>
+    <div class="grid2"><dl class="meta">
+      <dt>Entry point</dt><dd>Row/detail kebab menu → "Unarchive" (label swaps in when status = Archived).</dd>
+      <dt>Preconditions</dt><dd>Status = Archived.</dd>
+      <dt>Steps</dt><dd><ol><li>Click Unarchive.</li><li>Confirm dialog opens.</li><li>Confirm → dialog closes.</li></ol></dd>
+      <dt>Decision / branch points</dt><dd>Confirm vs. Cancel.</dd>
+    </dl><dl class="meta">
+      <dt>Alternative paths</dt><dd>None.</dd>
+      <dt>Exit / success condition</dt><dd>Same prototype limitation as UF-12/15.</dd>
+      <dt>Error / recovery paths</dt><dd>Not implemented.</dd>
+      <dt>Figma reference</dt><dd>Figma's only "Unarchive"-titled frame, <a class="figma-link" href="https://www.figma.com/design/8MTdgBEhjTTdSlU8ilrmlZ/Behavior-Predictions-DS3.0?node-id=372-41253" target="_blank">372:41253 ↗</a>, has an Unarchive title but Archive-flavored body/button text — internally contradictory, not a usable spec. The prototype's copy ("Unarchiving this prediction will resume it...") is its own, self-consistent invention.</dd>
+      <dt>Prototype state</dt><dd><span class="state-link">#state=sup-3-unarchive-dialog</span> — <a href="predictions-listing-v2.html#state=sup-3-unarchive-dialog" target="_blank">open</a> · <a href="snapshots/sup-3-unarchive-dialog.png" target="_blank">snapshot</a></dd>
+    </dl></div>
+  </article>
+
+  <article class="flow" id="UF-17">
+    <div class="flow-head"><span class="flow-id">UF-17</span><h3>Delete a prediction</h3>
+      <span class="pill impl">Implemented</span><span class="pill src">Figma-confirmed</span></div>
+    <div class="flow-goal">Goal: permanently remove a prediction.</div>
+    <div class="grid2"><dl class="meta">
+      <dt>Entry point</dt><dd>Row/detail kebab menu → "Delete" (when enabled).</dd>
+      <dt>Preconditions</dt><dd>Status ≠ Training/Refreshing.</dd>
+      <dt>Steps</dt><dd><ol><li>Click Delete.</li><li>Confirm dialog opens (destructive framing).</li><li>Confirm → dialog closes.</li></ol></dd>
+      <dt>Decision / branch points</dt><dd>Confirm vs. Cancel.</dd>
+    </dl><dl class="meta">
+      <dt>Alternative paths</dt><dd>Disabled + tooltip if busy — UF-18. Note <code>354:30709</code>: if the predictive attribute is used in a Segment, deletion should be blocked until removed from the segment — <b>not implemented</b> (no Segments integration exists here; open question).</dd>
+      <dt>Exit / success condition</dt><dd>Prototype limitation: no row removal on confirm.</dd>
+      <dt>Error / recovery paths</dt><dd>Not implemented.</dd>
+      <dt>Figma reference</dt><dd>Confirm dialog, <a class="figma-link" href="https://www.figma.com/design/8MTdgBEhjTTdSlU8ilrmlZ/Behavior-Predictions-DS3.0?node-id=372-39814" target="_blank">372:39814 ↗</a> — near-exact match (prototype fixes a grammar slip in Figma's body text).</dd>
+      <dt>Prototype state</dt><dd><span class="state-link">#state=sup-4-delete-dialog</span> — <a href="predictions-listing-v2.html#state=sup-4-delete-dialog" target="_blank">open</a> · <a href="snapshots/sup-4-delete-dialog.png" target="_blank">snapshot</a></dd>
+    </dl></div>
+  </article>
+
+  <article class="flow" id="UF-18">
+    <div class="flow-head"><span class="flow-id">UF-18</span><h3>Actions disabled during Training</h3>
+      <span class="pill impl">Implemented</span><span class="pill src">Figma-confirmed</span></div>
+    <div class="flow-goal">Goal: prevent conflicting actions while a model is actively training.</div>
+    <div class="grid2"><dl class="meta">
+      <dt>Entry point</dt><dd>Row/detail kebab menu on a Training-status row.</dd>
+      <dt>Preconditions</dt><dd>Status = Training.</dd>
+      <dt>Steps</dt><dd><ol><li>Open menu.</li><li>Retrain, Archive, and Delete are all greyed out simultaneously.</li><li>Hover any → reason tooltip.</li></ol></dd>
+      <dt>Decision / branch points</dt><dd>Three independent disable reasons rendered at once, one per action.</dd>
+    </dl><dl class="meta">
+      <dt>Alternative paths</dt><dd>Refresh and Activity log remain enabled.</dd>
+      <dt>Exit / success condition</dt><dd>User cannot trigger a conflicting action.</dd>
+      <dt>Error / recovery paths</dt><dd>N/A.</dd>
+      <dt>Figma reference</dt><dd>"Archive disabled," <a class="figma-link" href="https://www.figma.com/design/8MTdgBEhjTTdSlU8ilrmlZ/Behavior-Predictions-DS3.0?node-id=638-28986" target="_blank">638:28986↗</a>; "Delete - training," <a class="figma-link" href="https://www.figma.com/design/8MTdgBEhjTTdSlU8ilrmlZ/Behavior-Predictions-DS3.0?node-id=638-29136" target="_blank">638:29136↗</a>; "Retrain Rest 2," 372:39812 (wrong-status reason, applies here too since Training ≠ Ready).</dd>
+      <dt>Prototype state</dt><dd><span class="state-link">#state=dd-1-disabled-tooltip</span>, <span class="state-link">sup-5-archive-disabled</span>, <span class="state-link">sup-6-delete-disabled</span> — <a href="snapshots/sup-5-archive-disabled.png" target="_blank">snapshot</a></dd>
+    </dl></div>
+  </article>
+
+  <article class="flow" id="UF-19">
+    <div class="flow-head"><span class="flow-id">UF-19</span><h3>Actions disabled during Refreshing, where supported</h3>
+      <span class="pill partial">Partially implemented / Inferred</span><span class="pill src">No dedicated Figma frame for this status</span></div>
+    <div class="flow-goal">Goal: same protection as UF-18, for the newer "Refreshing" status.</div>
+    <div class="grid2"><dl class="meta">
+      <dt>Entry point</dt><dd>Row/detail kebab menu on a Refreshing-status row.</dd>
+      <dt>Preconditions</dt><dd>Status = Refreshing.</dd>
+      <dt>Steps</dt><dd>Identical UI to UF-18 — the code's busy-guard checks <code>status === 'training' || status === 'refreshing'</code> for Archive/Delete, and the general not-Ready gate covers Retrain (same mechanism, no special case needed).</dd>
+      <dt>Decision / branch points</dt><dd>Same as UF-18.</dd>
+    </dl><dl class="meta">
+      <dt>Alternative paths</dt><dd>None beyond UF-18.</dd>
+      <dt>Exit / success condition</dt><dd>Same as UF-18.</dd>
+      <dt>Error / recovery paths</dt><dd>N/A.</dd>
+      <dt>Figma reference</dt><dd><b>No Figma frame exists</b> for a Refreshing-specific disabled state — "Refreshing" as a status postdates the Archive/Delete-disabled frames, which only show "during training." The tooltip copy ("...while training or refreshing.") is this playground's own <b>inferred extension</b> of the confirmed Training-only rule, done for consistency. Flagged as an open question: should design produce Refreshing-specific copy, or is reusing the Training reasoning acceptable long-term?</dd>
+      <dt>Prototype state</dt><dd>Same states as UF-18, verified in code against a Refreshing-status row rather than separately screenshotted (identical rendering).</dd>
+    </dl></div>
+  </article>
+</section>
+
+<!-- ======================= CATEGORY D ======================= -->
+<section class="cat" id="cat-reco">
+  <h2>D. Recommendations</h2>
+  <div class="cat-sub">The ticket's core feature: "Refresh recommended" / "Retraining recommended," Ready-only, with strict precedence.</div>
+
+  <article class="flow" id="UF-20">
+    <div class="flow-head"><span class="flow-id">UF-20</span><h3>Use recommendation badges on the listing</h3>
+      <span class="pill impl">Implemented</span><span class="pill src">Figma-confirmed</span></div>
+    <div class="flow-goal">Goal: notice at a glance which Ready predictions need attention.</div>
+    <div class="grid2"><dl class="meta">
+      <dt>Entry point</dt><dd>Any populated listing view (UF-01).</dd>
+      <dt>Preconditions</dt><dd>≥1 Ready row with an active recommendation.</dd>
+      <dt>Steps</dt><dd><ol><li>View the list.</li><li>"Retraining recommended" appears under Last train date; "Refresh recommended" appears under Last Inference date — never both on the same row.</li></ol></dd>
+      <dt>Decision / branch points</dt><dd>Precedence: retraining always wins when both conditions are true.</dd>
+    </dl><dl class="meta">
+      <dt>Alternative paths</dt><dd>Click the badge → UF-22 or UF-23 directly from the list.</dd>
+      <dt>Exit / success condition</dt><dd>User can spot actionable rows without opening each one.</dd>
+      <dt>Error / recovery paths</dt><dd>N/A.</dd>
+      <dt>Figma reference</dt><dd>Placement rule, Note <code>585:28378</code>a: "'Retraining recommended' appears below Last trained. 'Refresh recommended' appears below Last refreshed."</dd>
+      <dt>Prototype state</dt><dd>Visible within <span class="state-link">#state=ll-3-populated</span>.</dd>
+    </dl></div>
+  </article>
+
+  <article class="flow" id="UF-21">
+    <div class="flow-head"><span class="flow-id">UF-21</span><h3>Open recommendation explanations / tooltips</h3>
+      <span class="pill impl">Implemented</span><span class="pill src">Figma-confirmed (exact copy)</span></div>
+    <div class="flow-goal">Goal: understand why a recommendation is showing before acting on it.</div>
+    <div class="grid2"><dl class="meta">
+      <dt>Entry point</dt><dd>Hover or keyboard-focus a recommendation badge.</dd>
+      <dt>Preconditions</dt><dd>A badge is visible (UF-20).</dd>
+      <dt>Steps</dt><dd><ol><li>Hover/focus the badge.</li><li>Tooltip appears with the reason and suggested action.</li><li>Escape or blur/mouseleave dismisses it.</li></ol></dd>
+      <dt>Decision / branch points</dt><dd>None.</dd>
+    </dl><dl class="meta">
+      <dt>Alternative paths</dt><dd>Click through instead of just reading → UF-22/23.</dd>
+      <dt>Exit / success condition</dt><dd>User understands the "why" before acting.</dd>
+      <dt>Error / recovery paths</dt><dd>N/A.</dd>
+      <dt>Figma reference</dt><dd>Tooltip copy, "tooltips" cluster, <a class="figma-link" href="https://www.figma.com/design/8MTdgBEhjTTdSlU8ilrmlZ/Behavior-Predictions-DS3.0?node-id=626-42298" target="_blank">626:42298 ↗</a>.</dd>
+      <dt>Prototype state</dt><dd><span class="state-link">#state=rt-1-tooltip</span> — <a href="predictions-listing-v2.html#state=rt-1-tooltip" target="_blank">open</a> · <a href="snapshots/rt-1-tooltip.png" target="_blank">snapshot</a></dd>
+    </dl></div>
+  </article>
+
+  <article class="flow" id="UF-22">
+    <div class="flow-head"><span class="flow-id">UF-22</span><h3>Act on a Retraining recommendation</h3>
+      <span class="pill impl">Implemented</span><span class="pill src">Figma-confirmed</span></div>
+    <div class="flow-goal">Goal: retrain from the recommendation, not just the general menu.</div>
+    <div class="grid2"><dl class="meta">
+      <dt>Entry point</dt><dd>Click the "Retraining recommended" badge (listing) or its detail-page banner action.</dd>
+      <dt>Preconditions</dt><dd>Status = Ready AND completedTrainingDaysSinceLastTraining ≥ predictionWindow.</dd>
+      <dt>Steps</dt><dd><ol><li>Click the badge/action.</li><li>Same Retrain confirm dialog as UF-12 opens.</li><li>Confirm → closes (same limitation as UF-12).</li></ol></dd>
+      <dt>Decision / branch points</dt><dd>Precedence already resolved before this point — this flow only runs when Retraining, not Refresh, is the active recommendation.</dd>
+    </dl><dl class="meta">
+      <dt>Alternative paths</dt><dd>Read the tooltip first (UF-21) without acting.</dd>
+      <dt>Exit / success condition</dt><dd>Per Figma tooltip copy: "Predictions will refresh automatically after retraining" — <b>not implemented</b> (no real job simulation exists to auto-refresh afterward).</dd>
+      <dt>Error / recovery paths</dt><dd>Same as UF-12.</dd>
+      <dt>Figma reference</dt><dd>Full decision table + example scenario, "EXAMPLE SCENARIO" text, <a class="figma-link" href="https://www.figma.com/design/8MTdgBEhjTTdSlU8ilrmlZ/Behavior-Predictions-DS3.0?node-id=631-27327" target="_blank">631:27327 ↗</a>; badge/rule text, Note <code>585:27986</code> and <code>585:28334</code> ("MVP logic").</dd>
+      <dt>Prototype state</dt><dd><span class="state-link">#state=rt-1-tooltip</span> → <span class="state-link">rt-2-dialog</span> → <span class="state-link">rt-3-confirmed</span>.</dd>
+    </dl></div>
+  </article>
+
+  <article class="flow" id="UF-23">
+    <div class="flow-head"><span class="flow-id">UF-23</span><h3>Act on a Refresh recommendation</h3>
+      <span class="pill impl">Implemented</span><span class="pill src">Figma-confirmed</span></div>
+    <div class="flow-goal">Goal: refresh from the recommendation.</div>
+    <div class="grid2"><dl class="meta">
+      <dt>Entry point</dt><dd>Click the "Refresh recommended" badge (listing) or its detail-page banner action.</dd>
+      <dt>Preconditions</dt><dd>Status = Ready AND hasNewSourceDataSinceLastRefresh AND retraining is NOT also recommended.</dd>
+      <dt>Steps</dt><dd><ol><li>Click the badge/action.</li><li>Same code path as "Refresh now" (UF-10) runs directly — no confirm dialog.</li><li>Toast appears.</li></ol></dd>
+      <dt>Decision / branch points</dt><dd>Only reachable when Retraining is not also true (precedence).</dd>
+    </dl><dl class="meta">
+      <dt>Alternative paths</dt><dd>Read the tooltip first without acting.</dd>
+      <dt>Exit / success condition</dt><dd>Toast confirms the refresh started — this is a genuinely wired, real action (not a prototype limitation, unlike Retrain/Archive/Delete).</dd>
+      <dt>Error / recovery paths</dt><dd>None simulated.</dd>
+      <dt>Figma reference</dt><dd>Same sources as UF-22, refresh side.</dd>
+      <dt>Prototype state</dt><dd>Demonstrated via the detail banner: <span class="state-link">#state=dd-2-detail-banner</span> → <span class="state-link">dd-3-refresh-toast</span> — <a href="snapshots/dd-3-refresh-toast.png" target="_blank">snapshot</a>. (The listing-badge click path shares the exact same handler; not separately screenshotted.)</dd>
+    </dl></div>
+  </article>
+
+  <article class="flow" id="UF-24">
+    <div class="flow-head"><span class="flow-id">UF-24</span><h3>View recommendation messaging on the detail screen</h3>
+      <span class="pill impl">Implemented</span><span class="pill src">Figma-confirmed</span></div>
+    <div class="flow-goal">Goal: see the same warning on the detail page, persistently, with its action.</div>
+    <div class="grid2"><dl class="meta">
+      <dt>Entry point</dt><dd>Open a Ready prediction with an active recommendation (UF-07).</dd>
+      <dt>Preconditions</dt><dd>Same as UF-22/23.</dd>
+      <dt>Steps</dt><dd><ol><li>Open the detail page.</li><li>Banner renders below the title row: icon, label, explanation, inline action link.</li></ol></dd>
+      <dt>Decision / branch points</dt><dd>Same precedence rule as the listing.</dd>
+    </dl><dl class="meta">
+      <dt>Alternative paths</dt><dd>None — always visible while the condition holds, on every re-render.</dd>
+      <dt>Exit / success condition</dt><dd>Banner disappears immediately if the row leaves Ready or the condition clears.</dd>
+      <dt>Error / recovery paths</dt><dd>N/A.</dd>
+      <dt>Figma reference</dt><dd>Note <code>585:28378</code>b: "Display a persistent info or warning alert explaining why the action is recommended. Include the relevant primary action." No close (×) button, per this prototype's own decision — Figma shows one, but "persistent" was read as the controlling instruction (documented conflict, see PRD).</dd>
+      <dt>Prototype state</dt><dd><span class="state-link">#state=dd-2-detail-banner</span> — <a href="predictions-listing-v2.html#state=dd-2-detail-banner" target="_blank">open</a> · <a href="snapshots/dd-2-detail-banner.png" target="_blank">snapshot</a></dd>
+    </dl></div>
+  </article>
+</section>
+
+<!-- ======================= CATEGORY E ======================= -->
+<section class="cat" id="cat-nonfunc">
+  <h2>E. Non-functional controls</h2>
+  <div class="cat-sub">Visible but presentational-only — never silently unaddressed.</div>
+
+  <article class="flow" id="UF-25">
+    <div class="flow-head"><span class="flow-id">UF-25</span><h3>Search, filtering, pagination, and export</h3>
+      <span class="pill not-impl">Not implemented</span><span class="pill src">Not Figma-confirmed as functional</span></div>
+    <div class="flow-goal">Goal (intended, not delivered): narrow down and export the list.</div>
+    <div class="grid2"><dl class="meta">
+      <dt>Entry point</dt><dd>Search field, 4 filter pills (Type/Tag/Source/Exports), "Export report" button, pagination controls — all visible on every populated-list render.</dd>
+      <dt>Preconditions</dt><dd>N/A.</dd>
+      <dt>Steps</dt><dd>None execute — see status per control below.</dd>
+      <dt>Decision / branch points</dt><dd>N/A.</dd>
+    </dl><dl class="meta">
+      <dt>Alternative paths</dt><dd>N/A.</dd>
+      <dt>Exit / success condition</dt><dd>N/A — this is documented as a known gap, not a working flow.</dd>
+      <dt>Error / recovery paths</dt><dd>N/A.</dd>
+      <dt>Figma reference</dt><dd>Structural presence only (search field + 4 dropdowns + pagination component visible on 585:31222); no annotation anywhere in the reviewed Figma scope describes their behavior.</dd>
+      <dt>Prototype state</dt><dd>None — not modeled as a state since nothing changes.</dd>
+    </dl></div>
+    <table class="states" style="margin-top:12px;">
+      <tr><th>Control</th><th>Current behavior</th><th>Status</th></tr>
+      <tr><td>Search input</td><td>No event handler at all</td><td>Presentational only</td></tr>
+      <tr><td>Filter pills ×4</td><td><code>onclick="return false;"</code></td><td>Presentational only</td></tr>
+      <tr><td>Export report</td><td><code>onclick="return false;"</code></td><td>Presentational only</td></tr>
+      <tr><td>Pagination</td><td>First/Prev hardcoded disabled; Next/Last have no handler</td><td>Presentational only</td></tr>
+      <tr><td>Column sort (3 date columns)</td><td>Toggles arrow direction only; no real re-sort</td><td>Presentational only (bonus finding, same category)</td></tr>
+    </table>
+  </article>
+</section>
+
+<!-- ======================= CATEGORY F ======================= -->
+<section class="cat" id="cat-states">
+  <h2>F. Cross-cutting states catalog</h2>
+  <div class="cat-sub">Not flows in their own right — a reference index of loading / empty / validation / error / success / toast / confirmation / cancellation / recovery moments, and which flow above each belongs to.</div>
+  <div class="audit-wrap">
+  <table class="audit">
+    <tr><th>State kind</th><th>Where it appears</th><th>Belongs to</th><th>Status</th></tr>
+    <tr><td>Empty</td><td>Zero predictions</td><td>UF-02</td><td class="pill impl" style="display:inline-flex;">Implemented</td></tr>
+    <tr><td>Loading</td><td>Save button spinner while "creating"</td><td>UF-05</td><td>Implemented</td></tr>
+    <tr><td>Validation (disabled-only, no inline message)</td><td>Create/Edit Save button</td><td>UF-05, UF-08</td><td>Implemented (by design, no inline errors in this variant)</td></tr>
+    <tr><td>Confirmation (dialog)</td><td>Retrain / Archive / Unarchive / Delete</td><td>UF-12, 15, 16, 17</td><td>Implemented (dialog only; see limitation)</td></tr>
+    <tr><td>Cancellation</td><td>Cancel button on any dialog or wizard</td><td>UF-05, 08, 12, 15, 16, 17</td><td>Implemented</td></tr>
+    <tr><td>Success (toast)</td><td>Create, Edit save, Refresh now / Refresh recommendation action</td><td>UF-05, 08, 10, 23</td><td>Implemented</td></tr>
+    <tr><td>Success (not implemented)</td><td>Retrain / Archive / Unarchive / Delete confirm</td><td>UF-12, 15, 16, 17</td><td><b>Not implemented</b> — dialog just closes</td></tr>
+    <tr><td>Error / recovery</td><td>Retrain failure → Failed status</td><td>UF-12, UF-22</td><td><b>Not implemented</b> — see spec error E6</td></tr>
+    <tr><td>Disabled + reason (tooltip)</td><td>Retrain/Archive/Delete guards</td><td>UF-13, 18, 19</td><td>Implemented</td></tr>
+    <tr><td>Recommendation banner clears</td><td>Leaving Ready, or condition resolved</td><td>UF-20…24</td><td>Implemented (pure function, recalculated on every render)</td></tr>
+  </table>
+  </div>
+</section>
+
+<!-- ======================= CATEGORY G ======================= -->
+<section class="cat" id="cat-excluded">
+  <h2>G. Explicitly excluded</h2>
+  <div class="cat-sub">Real Figma-designed scope that is deliberately not part of this prototype/spec — documented, not silently dropped.</div>
+
+  <div class="excl" id="EX-01">
+    <h3>EX-01 — Segments → Filter dropdown → Selected prediction indicator</h3>
+    <p><b>Reason for exclusion:</b> no Segments feature exists anywhere in this codebase to implement it against. Per your earlier decision, kept out of the prototype and spec, documented here instead of silently dropped.</p>
+    <p style="margin-top:6px;"><b>Figma evidence it's real scope:</b> Note <code>585:28378</code>c: "Display a compact warning indicator next to the selected prediction. The message informs the user that the selected prediction may not be up to date and provides access to the recommended action." Parent section: "Predictions Usage in Segments," <a class="figma-link" href="https://www.figma.com/design/8MTdgBEhjTTdSlU8ilrmlZ/Behavior-Predictions-DS3.0?node-id=443-57139" target="_blank">443:57139 ↗</a> — child frames identified by name only (Segment details, add-new-filter, dropdown, selected-prediction ×2, various filter-option panels, Segment list) but <b>not content-audited</b>, since implementing against a nonexistent feature isn't warranted here.</p>
+  </div>
+
+  <div class="excl" id="EX-02">
+    <h3>EX-02 — "Reminders" Figma section</h3>
+    <p><b>Reason for exclusion:</b> ambiguous purpose. This section (<a class="figma-link" href="https://www.figma.com/design/8MTdgBEhjTTdSlU8ilrmlZ/Behavior-Predictions-DS3.0?node-id=602-35125" target="_blank">602:35125 ↗</a>) contains "Create Prediction" and "Prediction - Detail" sub-frames (likely just duplicated reference copies, not new content) alongside several "M4 · Filter — Channel reachability preview" frames and dated screenshots — content that reads as unrelated design exploration (possibly a different feature, channel/audience reachability) rather than a Predictions "reminders" flow. <b>No visible transition connects it to the rest of the Predictions flows reviewed.</b> Recorded as unresolved per your instruction, not assumed to be in scope.</p>
+  </div>
+</section>
+
+<!-- ======================= COVERAGE AUDIT ======================= -->
+<section class="cat" id="cat-audit">
+  <h2>Figma coverage audit</h2>
+  <div class="cat-sub">Every Figma node deeply reviewed (content extracted via <code>get_design_context</code> or read from metadata text) during this inventory, mapped to a flow/state or an explicit exclusion reason. Purely structural container frames (nav bars, sidebars, generic "Page title" instances) are omitted — this table covers every screen, dialog, note, and content-bearing node actually inspected.</div>
+  <div class="audit-wrap">
+  <table class="audit">
+    <tr><th>Node ID</th><th>Name</th><th>Mapped to</th><th>Exclusion reason (if any)</th></tr>
+    <tr><td class="nid">354:30400</td><td>Listing (parent frame)</td><td>UF-01…24 (container)</td><td>—</td></tr>
+    <tr><td class="nid">585:31222</td><td>Predictions list (populated)</td><td>UF-01, UF-20</td><td>—</td></tr>
+    <tr><td class="nid">354:31700</td><td>Predictions list (empty)</td><td>UF-02, UF-03</td><td>—</td></tr>
+    <tr><td class="nid">370:38199</td><td>Predictions list + Toast</td><td>UF-10</td><td>—</td></tr>
+    <tr><td class="nid">369:35274</td><td>Predictions list + Retrain dialog</td><td>UF-12, UF-22</td><td>—</td></tr>
+    <tr><td class="nid">372:39814</td><td>Predictions list + Delete dialog</td><td>UF-17</td><td>—</td></tr>
+    <tr><td class="nid">372:41253</td><td>Predictions list + "Unarchive" dialog (contradictory)</td><td>UF-16</td><td>Copy unusable; inferred replacement used</td></tr>
+    <tr><td class="nid">372:42464</td><td>Predictions list + Archive dialog</td><td>UF-15</td><td>—</td></tr>
+    <tr><td class="nid">354:30715</td><td>Menu Actions — Actions</td><td>UF-10…19 (menu labels)</td><td>—</td></tr>
+    <tr><td class="nid">585:27986</td><td>Menu Actions — Warnings</td><td>UF-20…24</td><td>—</td></tr>
+    <tr><td class="nid">354:30741</td><td>Statuses</td><td>Status model (spec, PRD)</td><td>—</td></tr>
+    <tr><td class="nid">354:30744</td><td>*Status / Status instance (radius check)</td><td>PRD §5 conflict #1</td><td>—</td></tr>
+    <tr><td class="nid">354:30762</td><td>Activity logs</td><td>UF-14</td><td>—</td></tr>
+    <tr><td class="nid">372:39813</td><td>Retrain Rest 1 (cooldown)</td><td>UF-13</td><td>—</td></tr>
+    <tr><td class="nid">372:39812</td><td>Retrain Rest 2 (wrong status)</td><td>UF-13, UF-18</td><td>—</td></tr>
+    <tr><td class="nid">638:28986</td><td>Archive disabled</td><td>UF-18</td><td>—</td></tr>
+    <tr><td class="nid">638:29136</td><td>Delete - training</td><td>UF-18</td><td>—</td></tr>
+    <tr><td class="nid">372:39811</td><td>Refresh Menu</td><td>UF-11</td><td>—</td></tr>
+    <tr><td class="nid">626:42298</td><td>tooltips (recommendation reasons)</td><td>UF-21</td><td>—</td></tr>
+    <tr><td class="nid">631:27327 / 585:28402</td><td>EXAMPLE SCENARIO text</td><td>UF-22, UF-23 (decision table)</td><td>—</td></tr>
+    <tr><td class="nid">354:30704</td><td>Note — Listing Page (columns/actions)</td><td>UF-01, UF-10…19</td><td>—</td></tr>
+    <tr><td class="nid">585:28334</td><td>Note — MVP logic</td><td>UF-22, UF-23</td><td>—</td></tr>
+    <tr><td class="nid">585:28357</td><td>Note — Visibility</td><td>UF-20…24</td><td>—</td></tr>
+    <tr><td class="nid">585:28378</td><td>Note — Reminder placements</td><td>UF-20, UF-24, EX-01</td><td>(c) excluded — see EX-01</td></tr>
+    <tr><td class="nid">354:30706</td><td>Note — Activity Log</td><td>UF-14</td><td>—</td></tr>
+    <tr><td class="nid">354:30707</td><td>Note — PM Discussions</td><td>PRD open Q4</td><td>Incomplete thought, no action taken</td></tr>
+    <tr><td class="nid">354:30708</td><td>Note — Retrain</td><td>UF-12, UF-13</td><td>—</td></tr>
+    <tr><td class="nid">354:30709</td><td>Note — PM Needs to Approve (Segments deletion block)</td><td>UF-17</td><td>Not implemented — no Segments integration; open question</td></tr>
+    <tr><td class="nid">638:29220</td><td>Note — PM Needs to Approve (max prediction count)</td><td>PRD open Q1</td><td>Undecided — no answer invented</td></tr>
+    <tr><td class="nid">354:30711</td><td>Note — Health Score</td><td>PRD open Q2</td><td>Undecided — no answer invented</td></tr>
+    <tr><td class="nid">638:27503</td><td>Note — Last retrain (credit threshold)</td><td>PRD open Q3</td><td>Undecided — no answer invented</td></tr>
+    <tr><td class="nid">354:30712</td><td>Note — Status (update error doesn't fail)</td><td>Status model</td><td>—</td></tr>
+    <tr><td class="nid">354:30713</td><td>Note — Status (retrain error → Failed)</td><td>UF-12, UF-22; spec error E6</td><td>Copy has a typo; rule confirmed, UI not implemented</td></tr>
+    <tr><td class="nid">354:31698</td><td>Note — PM Notes (cold start / pricing)</td><td>UF-02</td><td>—</td></tr>
+    <tr><td class="nid">638:28985</td><td>Note — Disable scheduled refresh on archive</td><td>UF-15</td><td>Not currently reflected in the prototype — open question</td></tr>
+    <tr><td class="nid">354:32145</td><td>Create Prediction (parent)</td><td>UF-03…05</td><td>—</td></tr>
+    <tr><td class="nid">503:27603</td><td>Note — Goal event (max 10)</td><td>UF-05</td><td>—</td></tr>
+    <tr><td class="nid">503:27604</td><td>Note — Add use cases &amp; errors</td><td>—</td><td>Designer TODO marker, no content to extract</td></tr>
+    <tr><td class="nid">506:28123</td><td>Note — Time Settings Info</td><td>UF-05, UF-09</td><td>—</td></tr>
+    <tr><td class="nid">354:32682</td><td>Note — Run/Start/End date (contract period)</td><td>UF-05</td><td>—</td></tr>
+    <tr><td class="nid">441:49634</td><td>Note — Start &amp; End date rules</td><td>UF-05</td><td>Date+time called for; date-only shipped (documented deviation)</td></tr>
+    <tr><td class="nid">649:29353</td><td>Note — Every X days (7–29)</td><td>UF-05</td><td>—</td></tr>
+    <tr><td class="nid">354:33341</td><td>Note — Recurring stops when</td><td>—</td><td>Business rule not surfaced in UI — likely backend-only; open question</td></tr>
+    <tr><td class="nid">631:27329</td><td>Save button + info tooltip</td><td>UF-05</td><td>—</td></tr>
+    <tr><td class="nid">443:54890</td><td>Details (parent)</td><td>UF-07…09</td><td>—</td></tr>
+    <tr><td class="nid">443:57224</td><td>Prediction - Detail</td><td>UF-07</td><td>—</td></tr>
+    <tr><td class="nid">443:57304</td><td>Note — Details (Actions/More menu)</td><td>UF-07, UF-10…19</td><td>—</td></tr>
+    <tr><td class="nid">443:57305</td><td>Note — Edit (restricted fields)</td><td>UF-08</td><td>—</td></tr>
+    <tr><td class="nid">443:59557</td><td>More Menu</td><td>UF-07</td><td>—</td></tr>
+    <tr><td class="nid">506:31141</td><td>Create Prediction (nested in Details)</td><td>UF-08, UF-09</td><td>Interpreted as the Edit entry point — not explicitly labeled as such in Figma</td></tr>
+    <tr><td class="nid">602:35125</td><td>Reminders (parent)</td><td>EX-02</td><td>Excluded — ambiguous, likely unrelated exploration</td></tr>
+    <tr><td class="nid">602:35126</td><td>Page title "Reminders"</td><td>EX-02</td><td>Excluded — no explanatory content beyond the title</td></tr>
+    <tr><td class="nid">443:57139</td><td>Predictions Usage in Segments (parent)</td><td>EX-01</td><td>Excluded — see EX-01; children identified by name only</td></tr>
+  </table>
+  </div>
+</section>
+
+</main>
+
+<footer class="page">
+  Figma source: <a href="https://www.figma.com/design/8MTdgBEhjTTdSlU8ilrmlZ/Behavior-Predictions-DS3.0?node-id=354-30391" target="_blank">Behavior-Predictions-DS3.0, section 354:30391</a> · Prototype: <a href="predictions-listing-v2.html">predictions-listing-v2.html</a> · Interactive spec: <a href="predictions-listing-v2-spec.html">predictions-listing-v2-spec.html</a> · PRD: <a href="predictions-listing-v2-prd.md">predictions-listing-v2-prd.md</a> · Generated 2026-08-12.
+</footer>
+
+</body>
+</html>
