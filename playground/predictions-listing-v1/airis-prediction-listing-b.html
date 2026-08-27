@@ -25,6 +25,8 @@
   --color-fg-orange:#FE8022;
   --color-fg-blue:#296AFF;
   --color-fg-purple:#864CFF;
+  --color-fg-teal:#00B4BF;
+  --color-bg-green-toast:#DBFFF2;
   --color-bg-green:#C7FFEB;
   --color-bg-gray:#EDEEF1;
   --color-bg-orange:#FFEEE1;
@@ -57,10 +59,10 @@
   --color-border-popover:#DEDFE5; /* border-popover — not in tokens-ds3.css */
 }
 
-/* Version B only — the latest Behavior-Predictions-DS3.0 Figma (node 354:30741) moved the
-   Status badge from this file's older solid pastel fills to translucent tints of the same
-   semantic fg colors. Kept as separate tokens (not overwriting --color-bg-*) since other
-   components (filter pills, hints) still intentionally use the older solid fills. */
+/* The latest Behavior-Predictions-DS3.0 Figma (node 354:30741) moved the Status badge from
+   this file's older solid pastel fills to translucent tints of the same semantic fg colors.
+   Kept as separate tokens (not overwriting --color-bg-*) since other components (filter pills,
+   hints) still intentionally use the older solid fills. */
 :root{
   --color-bg-green-translucent:rgba(60,211,158,0.15);
   --color-bg-blue-translucent:rgba(112,160,255,0.15);
@@ -107,7 +109,7 @@
 /* -- Table -- */
 .table-container { background:var(--color-surface-primary); border:1px solid var(--color-border-general); border-radius:var(--radius-lg); overflow:hidden; }
 .table-scroll { overflow-x:auto; }
-.pred-table { width:100%; min-width:1194px; border-collapse:collapse; table-layout:fixed; }
+.pred-table { width:100%; min-width:1526px; border-collapse:collapse; table-layout:fixed; }
 .pred-table thead tr { height:44px; background:var(--color-surface-tertiary); }
 .pred-table th { text-align:left; font-size:14px; font-weight:600; line-height:20px; letter-spacing:0.2px; color:var(--color-text-med); padding:0 16px; position:relative; }
 .pred-table th:not(:last-child)::after { content:""; position:absolute; right:0; top:8px; bottom:8px; width:1px; background:var(--color-border-general); }
@@ -150,14 +152,18 @@ tr:hover .row-actions, tr:focus-within .row-actions { opacity:1; }
 .status-archived .status-dot { background:var(--color-fg-gray); }
 @keyframes predStatusSpin { to { transform:rotate(360deg); } }
 
-/* -- Recommendation badge ("Refresh recommended" / "Retraining recommended") — a real focusable
-   button, not a decorative label: it performs the recommended action on click and shows the shared
-   .menu-tooltip on hover/focus. Reuses the existing orange tokens (--color-fg-orange/--color-bg-orange,
-   already this file's Hint-warning recipe) rather than a new tint — one warning color everywhere. -- */
-.rec-badge { display:inline-flex; align-items:center; gap:4px; height:16px; padding:0 4px; margin-top:4px; border:none; border-radius:4px; background:var(--color-bg-orange); color:var(--color-fg-orange); font-family:inherit; font-size:12px; font-weight:600; line-height:16px; letter-spacing:0.2px; white-space:nowrap; cursor:pointer; }
-.rec-badge svg { width:12px; height:12px; flex-shrink:0; }
-.rec-badge:hover { background:#FFE3C8; }
-.rec-badge:focus-visible, .icon-btn:focus-visible, .wiz-hint-action:focus-visible { outline:2px solid var(--color-primary); outline-offset:2px; }
+/* -- Recommendation indicator ("Refresh recommended" / "Retraining recommended") — a compact,
+   focusable trigger next to the relevant date (Last refreshed for a refresh, Last trained for a
+   retrain — per Figma node 835:37788's "Reminder touchpoints" note), not a decorative label: it
+   is a real <button> so the shared .menu-tooltip on hover/focus is keyboard-reachable too. The
+   full recommendation text lives only in the tooltip, keeping the row itself uncluttered. Reuses
+   the existing orange tokens (--color-fg-orange/--color-bg-orange, already this file's
+   Hint-warning recipe) rather than a new tint — one warning color everywhere. -- */
+.date-rec-trigger { display:inline-flex; align-items:center; gap:4px; width:100%; min-width:0; border:none; background:none; padding:0; margin:0; font:inherit; text-align:left; color:var(--color-fg-orange); cursor:pointer; }
+.date-rec-trigger .date-cell-value { flex:1 1 auto; min-width:0; color:inherit; text-decoration:underline; text-decoration-style:dotted; text-decoration-color:var(--color-fg-orange); text-underline-offset:2px; }
+.date-rec-icon { width:14px; height:14px; flex-shrink:0; color:var(--color-fg-orange); }
+.date-rec-trigger:hover .date-cell-value { text-decoration-color:var(--color-fg-orange); }
+.date-rec-trigger:focus-visible, .icon-btn:focus-visible, .wiz-hint-action:focus-visible { outline:2px solid var(--color-primary); outline-offset:2px; }
 
 /* -- Prediction type cell -- */
 .pred-type { display:flex; align-items:center; gap:6px; }
@@ -181,21 +187,15 @@ tr:hover .row-actions, tr:focus-within .row-actions { opacity:1; }
 /* -- Kebab menu (MenuIconItem) -- */
 .menu-panel { position:fixed; width:200px; background:var(--color-surface-primary); border:1px solid var(--color-border-popover); border-radius:var(--radius-sm); box-shadow:var(--shadow-M); padding:8px 0; z-index:900; display:none; }
 .menu-panel.open { display:block; }
-.menu-item { display:flex; align-items:center; gap:8px; min-height:40px; padding:10px 12px; border-radius:4px; font-size:14px; line-height:20px; letter-spacing:0.2px; color:var(--color-text-high); cursor:pointer; white-space:nowrap; }
+.menu-item { display:flex; align-items:center; gap:8px; min-height:40px; padding:10px 12px; border-radius:4px; font-size:14px; line-height:20px; letter-spacing:0.2px; color:var(--color-text-high); cursor:pointer; white-space:nowrap; box-sizing:border-box; }
 .menu-item:hover { background:rgba(0,10,58,0.05); }
+.menu-item:focus-visible { outline:2px solid var(--color-primary); outline-offset:-2px; background:rgba(0,10,58,0.05); }
+.menu-item:focus { outline:none; }
 .menu-item svg { width:20px; height:20px; color:var(--color-text-low); flex-shrink:0; }
 .menu-item .menu-item-label { flex:1 1 auto; }
 .menu-item.disabled { opacity:0.5; cursor:default; }
 .menu-item.disabled:hover { background:none; }
 .menu-divider { height:1px; background:var(--color-border-general); margin:4px 0; }
-
-/* -- Refresh nested submenu -- */
-.menu-item-wrap { position:relative; }
-/* position:fixed + JS-computed top/left (same floating-panel technique as #rowMenuPanel /
-   #wizSelectPanel) — not position:absolute off the wrap, so it can flip to the parent menu's left
-   edge instead of overflowing the viewport when opened near the right edge of the screen. */
-.menu-submenu { position:fixed; width:200px; background:var(--color-surface-primary); border:1px solid var(--color-border-popover); border-radius:var(--radius-sm); box-shadow:var(--shadow-M); padding:8px 0; z-index:901; display:none; }
-.menu-submenu.open { display:block; }
 
 /* -- Disabled menu-item tooltip -- */
 .menu-tooltip { position:fixed; max-width:320px; background:var(--color-surface-primary); border:1px solid var(--color-border-popover); border-radius:var(--radius-sm); padding:8px 12px; box-shadow:0 2px 8px rgba(0,10,58,0.16); font-size:12px; line-height:16px; letter-spacing:0.2px; color:var(--color-text-high); z-index:950; }
@@ -208,6 +208,7 @@ tr:hover .row-actions, tr:focus-within .row-actions { opacity:1; }
 .pred-confirm-header { height:56px; display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 24px; border-bottom:1px solid var(--color-border-general); }
 .pred-confirm-header h2 { font-size:16px; font-weight:600; line-height:24px; letter-spacing:0.2px; color:var(--color-text-high); }
 .pred-confirm-body { padding:24px; font-size:14px; line-height:20px; letter-spacing:0.2px; color:var(--color-text-high); }
+.pred-confirm-body p { margin:0; }
 .pred-confirm-footer { display:flex; align-items:center; justify-content:flex-end; gap:12px; padding:12px 24px; }
 .pred-confirm-btn { display:inline-flex; align-items:center; justify-content:center; height:40px; min-width:80px; padding:12px 10px; border-radius:var(--radius-sm); font-size:14px; font-weight:600; line-height:20px; letter-spacing:0.2px; border:none; cursor:pointer; font-family:inherit; }
 .pred-confirm-btn-secondary { background:var(--color-surface-primary); border:1px solid var(--color-border-general); color:rgba(0,10,58,0.7); }
@@ -215,10 +216,31 @@ tr:hover .row-actions, tr:focus-within .row-actions { opacity:1; }
 .pred-confirm-btn-primary { background:var(--color-primary); color:var(--color-white); }
 .pred-confirm-btn-primary:hover { background:var(--color-primary-hover); }
 .pred-confirm-btn-primary:active { background:var(--color-primary-pressed); }
+.pred-confirm-btn-destructive { background:var(--color-red-70); color:var(--color-white); }
+.pred-confirm-btn-destructive:hover { background:var(--color-red-hover); }
+.pred-confirm-btn:disabled { opacity:0.6; cursor:not-allowed; }
+.pred-confirm-btn:focus-visible { outline:2px solid var(--color-primary); outline-offset:2px; }
+/* -- Wider dialog variant for the segment-dependency lists (Delete blocker / Archive warning) --
+   matches Figma's 800px "*Dialog" frame instead of the default 400px confirm size. -- */
+.pred-confirm-dialog.pred-confirm-dialog-wide { width:640px; }
+.pred-confirm-error { display:flex; align-items:flex-start; gap:8px; margin:0 24px 12px; padding:12px; border-radius:var(--radius-sm); background:var(--color-bg-red); border:0.5px solid var(--color-fg-red); color:var(--color-text-high); font-size:14px; line-height:20px; letter-spacing:0.2px; }
+.pred-confirm-error svg { width:16px; height:16px; color:var(--color-fg-red); flex-shrink:0; margin-top:2px; }
+/* -- Segment-dependency list (Delete blocker / Archive-with-segments) — reuses the Activity log
+   table recipe (header row + bordered body rows) with a clickable, primary-colored segment name. -- */
+.segment-list-table { width:100%; border-collapse:collapse; border:1px solid var(--color-border-general); border-radius:var(--radius-sm); overflow:hidden; }
+.segment-list-table thead tr { height:40px; background:var(--color-surface-tertiary); }
+.segment-list-table th { text-align:left; font-size:12px; font-weight:600; letter-spacing:0.2px; color:var(--color-text-med); padding:0 12px; }
+.segment-list-table td { padding:10px 12px; font-size:14px; line-height:20px; letter-spacing:0.2px; color:var(--color-text-high); border-top:1px solid var(--color-border-general); }
+.segment-list-table tbody tr:first-child td { border-top:none; }
+.segment-link { background:none; border:none; padding:0; margin:0; font:inherit; color:var(--color-primary); cursor:pointer; text-align:left; }
+.segment-link:hover { color:var(--color-primary-hover); text-decoration:underline; }
+.segment-link:focus-visible { outline:2px solid var(--color-primary); outline-offset:2px; }
 
 /* -- Toast -- */
-.pred-toast { position:fixed; left:50%; bottom:36px; transform:translateX(-50%); display:flex; align-items:flex-start; gap:10px; width:400px; max-width:calc(100vw - 48px); padding:16px; border-radius:var(--radius-sm); box-shadow:var(--shadow-M); background:var(--color-bg-azure); z-index:1000; }
-.pred-toast svg.toast-icon { width:16px; height:16px; color:var(--color-fg-azure); flex-shrink:0; margin-top:2px; }
+.pred-toast { position:fixed; left:50%; bottom:36px; transform:translateX(-50%); display:flex; align-items:flex-start; gap:8px; width:400px; max-width:calc(100vw - 48px); padding:16px; border:1px solid var(--color-border-popover); border-radius:var(--radius-sm); box-shadow:var(--shadow-M); background:var(--color-bg-azure); z-index:1000; }
+.pred-toast.pred-toast-success { background:var(--color-bg-green-toast); }
+.pred-toast svg.toast-icon { width:20px; height:20px; color:var(--color-fg-azure); flex-shrink:0; }
+.pred-toast svg.toast-icon-success { color:var(--color-fg-green); }
 .pred-toast .toast-body { flex:1 1 auto; font-size:14px; font-weight:600; line-height:20px; letter-spacing:0.2px; color:var(--color-text-high); }
 .pred-toast .toast-close { flex-shrink:0; display:inline-flex; align-items:center; justify-content:center; width:20px; height:20px; border:none; background:transparent; color:var(--color-text-low); cursor:pointer; padding:0; }
 .pred-toast .toast-close svg { width:20px; height:20px; }
@@ -361,7 +383,7 @@ tr:hover .row-actions, tr:focus-within .row-actions { opacity:1; }
 .wiz-step-done .wiz-step-circle svg { width:14px; height:14px; }
 .wiz-step-done .wiz-step-label { font-size:14px; font-weight:500; letter-spacing:0.2px; color:var(--color-text-high); }
 
-/* -- Radio buttons (Schedule inference Yes/No, Frequency) — new control type, no prior CSS to
+/* -- Radio buttons (Schedule refresh Yes/No, Frequency) — new control type, no prior CSS to
    reuse; follows the same box-sizing:border-box + token-only-color discipline as the rest of the
    wizard so the checked ring doesn't shift the box size. -- */
 .wiz-radio-row { display:flex; align-items:center; gap:24px; }
@@ -371,6 +393,22 @@ tr:hover .row-actions, tr:focus-within .row-actions { opacity:1; }
 .wiz-radio.checked { border:2px solid var(--color-primary); }
 .wiz-radio.checked::after { content:''; position:absolute; top:50%; left:50%; width:10px; height:10px; border-radius:50%; background:var(--color-primary); transform:translate(-50%, -50%); }
 .wiz-radio-group-locked { opacity:0.5; pointer-events:none; }
+
+/* -- Checkbox combo ("Refresh on a schedule") — DS Main checkbox recipe: 16px visual box inside a
+   20px hit target (native <input type="checkbox"> for real keyboard/AT support, visually hidden
+   and driving the painted box via the checked/focus-visible sibling selectors). -- */
+.wiz-checkbox-combo { position:relative; display:inline-flex; align-items:center; gap:8px; cursor:pointer; font-size:14px; line-height:20px; letter-spacing:0.2px; color:var(--color-text-high); }
+.wiz-checkbox-input { position:absolute; left:0; top:0; width:20px; height:20px; margin:0; opacity:0; cursor:pointer; }
+.wiz-checkbox-input:disabled { cursor:not-allowed; }
+.wiz-checkbox-box { position:relative; width:16px; height:16px; border-radius:4px; border:2px solid var(--color-border-emphasis); background:var(--color-surface-primary); box-sizing:border-box; flex-shrink:0; pointer-events:none; }
+.wiz-checkbox-input:checked ~ .wiz-checkbox-box { background:var(--color-primary); border-color:var(--color-primary); }
+.wiz-checkbox-input:checked ~ .wiz-checkbox-box::after { content:''; position:absolute; left:4px; top:1px; width:4px; height:8px; border:solid var(--color-white); border-width:0 2px 2px 0; transform:rotate(45deg); }
+.wiz-checkbox-input:disabled ~ .wiz-checkbox-box { opacity:0.5; }
+.wiz-checkbox-input:focus-visible ~ .wiz-checkbox-box { outline:2px solid var(--color-primary); outline-offset:2px; }
+
+/* -- Small helper line under a required section label (Schedule's "Active period" hint) — lower
+   emphasis than .wiz-hint, just body copy in the low-emphasis text token. -- */
+.wiz-field-hint { font-size:14px; line-height:20px; letter-spacing:0.2px; color:var(--color-text-low); margin:0; }
 
 /* -- "Prediction window"-style shaded sub-panel, vertical modifier for Schedule's One-time /
    Recurring panels (same background/padding/radius tokens as .wiz-window-panel, stacked layout) -- */
@@ -454,7 +492,7 @@ tr:hover .row-actions, tr:focus-within .row-actions { opacity:1; }
 .wiz-hint-list { margin:0; padding-left:21px; }
 .wiz-hint-list li { font-size:14px; line-height:20px; letter-spacing:0.2px; color:var(--color-text-high); }
 
-/* -- Version B only: single-page Create Prediction — Save button's info tooltip. Right-aligned to
+/* -- Single-page Create Prediction — Save button's info tooltip. Right-aligned to
    the button (which always sits in the header's top-right corner) and clamped, so it stays inside
    the viewport without needing a left/right flip like the row-menu submenus do. -- */
 .save-info-tooltip { position:fixed; width:220px; background:var(--color-surface-primary); border:1px solid var(--color-border-popover); border-radius:var(--radius-sm); box-shadow:var(--shadow-M); padding:12px 8px; z-index:1300; display:none; }
@@ -480,7 +518,34 @@ tr:hover .row-actions, tr:focus-within .row-actions { opacity:1; }
 
 /* -- Toast spinner icon (fresh-create "starts training" toast) — same ring + predStatusSpin
    animation as .status-training-spinner, sized to the toast's 16px icon slot. -- */
-.pred-toast .toast-icon-spinner { width:16px; height:16px; border-radius:50%; border:2px solid rgba(41,106,255,0.25); border-top-color:var(--color-primary); flex-shrink:0; margin-top:2px; animation:predStatusSpin .8s linear infinite; }
+.pred-toast .toast-icon-spinner { width:20px; height:20px; border-radius:50%; border:2px solid rgba(41,106,255,0.25); border-top-color:var(--color-primary); flex-shrink:0; animation:predStatusSpin .8s linear infinite; }
+
+/* -- Post-Save "Creating prediction" validation/creation stage (Figma node 858:41844) — a
+   translucent mask over the page (content stays visible/dimmed, not swapped out) blocking pointer
+   events for the whole viewport so the form can't be edited mid-validation, centered on the DS
+   Main "Loading animate GIF" pinwheel (reproduced here as a 4-square CSS animation, same technique
+   this file already uses for every other DS component: hand-built to the token/shape spec rather
+   than a literal asset import) + live progress text. -- */
+.wiz-creating-overlay { position:fixed; inset:0; background:var(--color-bg-gray-translucent); z-index:1400; display:flex; align-items:center; justify-content:center; }
+.wiz-creating-overlay[hidden] { display:none; }
+.creating-content { display:flex; flex-direction:column; align-items:center; gap:16px; }
+.creating-spinner { position:relative; width:32px; height:32px; }
+.creating-spinner span { position:absolute; width:45%; height:45%; border-radius:3px; background:var(--color-fg-teal); animation:creatingPulse 1.2s ease-in-out infinite; }
+.creating-spinner span:nth-child(1) { top:0; left:0; animation-delay:0s; }
+.creating-spinner span:nth-child(2) { top:0; right:0; animation-delay:.2s; }
+.creating-spinner span:nth-child(3) { bottom:0; right:0; animation-delay:.4s; }
+.creating-spinner span:nth-child(4) { bottom:0; left:0; animation-delay:.6s; }
+@keyframes creatingPulse { 0%, 100% { opacity:.25; } 50% { opacity:1; } }
+.creating-text { display:flex; flex-direction:column; align-items:center; gap:4px; }
+.creating-progress-row { display:flex; align-items:center; gap:8px; }
+.creating-progress-label { font-size:16px; font-weight:600; line-height:24px; letter-spacing:0.2px; color:var(--color-text-med); }
+.creating-progress-pct { font-size:16px; font-weight:600; line-height:24px; letter-spacing:0.2px; color:var(--color-text-med); min-width:36px; text-align:right; }
+.creating-subtext { font-size:14px; line-height:20px; letter-spacing:0.2px; color:var(--color-text-low); }
+
+/* -- Error variant of .wiz-hint-warning for a failed validation/creation attempt — same "tint the
+   whole panel" recipe, red tokens instead of orange. -- */
+.wiz-hint-error { width:100%; box-sizing:border-box; background:var(--color-bg-red); border:0.5px solid var(--color-fg-red); }
+.wiz-hint-error .wiz-hint-icon { color:var(--color-fg-red); }
 
 /* Breadcrumb trail (Predictions › Create prediction) */
 .breadcrumb-crumb { color:inherit; text-decoration:none; font:inherit; cursor:pointer; }
@@ -785,6 +850,7 @@ tr:hover .row-actions, tr:focus-within .row-actions { opacity:1; }
 <symbol id="scheduleOutlined24" viewBox="0 0 24 24" fill-rule="evenodd"><path d="M20 12a8 8 0 1 1-16 0 8 8 0 0 1 16 0Zm2 0c0 5.523-4.477 10-10 10S2 17.523 2 12 6.477 2 12 2s10 4.477 10 10Zm-9-5a1 1 0 1 0-2 0v5.333a1 1 0 0 0 .336.748l3 2.666a1 1 0 0 0 1.328-1.494L13 11.884V7Z"/></symbol>
 <symbol id="infoOutlined20" viewBox="0 0 20 20" fill-rule="evenodd"><path d="M10 16.5a6.5 6.5 0 1 0 0-13 6.5 6.5 0 0 0 0 13Zm8-6.5a8 8 0 1 1-16 0 8 8 0 0 1 16 0Zm-8-1c-.414 0-.75.32-.75.714v3.572c0 .394.336.714.75.714s.75-.32.75-.714V9.714C10.75 9.32 10.414 9 10 9Zm0-1a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z"/></symbol>
 <symbol id="warningSolid20" viewBox="0 0 20 20" fill-rule="evenodd"><path d="M8.965 3.597a1.2 1.2 0 0 1 2.07 0l6.8 11.6a1.2 1.2 0 0 1-1.036 1.806H3.201a1.2 1.2 0 0 1-1.035-1.807l6.799-11.6ZM11 14.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0ZM10 12a1 1 0 0 0 1-1V7a1 1 0 1 0-2 0v4a1 1 0 0 0 1 1Z"/></symbol>
+<symbol id="checkCircleSolid20" viewBox="0 0 20 20" fill-rule="evenodd"><path d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm3.707-10.293a1 1 0 0 0-1.414-1.414L9 9.586 7.707 8.293a1 1 0 0 0-1.414 1.414l2 2a1 1 0 0 0 1.414 0l4-4Z"/></symbol>
 </svg>
 
 <div class="shell">
@@ -1046,21 +1112,22 @@ tr:hover .row-actions, tr:focus-within .row-actions { opacity:1; }
           <table class="pred-table">
             <colgroup>
               <col style="width:388px"><col style="width:153px"><col style="width:222px">
-              <col style="width:143px"><col style="width:168px"><col style="width:120px">
+              <col style="width:150px"><col style="width:192px"><col style="width:177px"><col style="width:244px">
             </colgroup>
             <thead>
               <tr>
                 <th><span class="th-inner">Name</span></th>
                 <th><span class="th-inner">Status</span></th>
                 <th><span class="th-inner">Prediction type</span></th>
+                <th><span class="th-inner">Prediction window</span></th>
                 <th data-sortable data-key="lastTrain" onclick="sortBy('lastTrain')">
-                  <span class="th-inner">Last train date
+                  <span class="th-inner">Last trained
                     <svg class="sort-icon dir-up" width="16" height="16" fill="currentColor" fill-rule="evenodd"><use href="#directionalArrowUpOutlined20"></use></svg>
                     <svg class="sort-icon dir-down" width="16" height="16" fill="currentColor" fill-rule="evenodd"><use href="#directionalArrowDownOutlined20"></use></svg>
                   </span>
                 </th>
-                <th data-sortable data-key="lastInference" onclick="sortBy('lastInference')">
-                  <span class="th-inner">Last Inference date
+                <th data-sortable data-key="lastRefreshed" onclick="sortBy('lastRefreshed')">
+                  <span class="th-inner">Last refreshed
                     <svg class="sort-icon dir-up" width="16" height="16" fill="currentColor" fill-rule="evenodd"><use href="#directionalArrowUpOutlined20"></use></svg>
                     <svg class="sort-icon dir-down" width="16" height="16" fill="currentColor" fill-rule="evenodd"><use href="#directionalArrowDownOutlined20"></use></svg>
                   </span>
@@ -1111,12 +1178,11 @@ tr:hover .row-actions, tr:focus-within .row-actions { opacity:1; }
             </div>
             <h1 class="page-title" id="wizPageTitle">Create prediction</h1>
           </div>
-          <div class="wiz-hint wiz-hint-warning" id="wizRecommendationBanner" hidden>
+          <div class="wiz-hint wiz-hint-error" id="wizCreatingErrorHint" hidden role="alert">
             <span class="wiz-hint-icon"><svg width="20" height="20" fill="currentColor" fill-rule="evenodd"><use href="#warningSolid20"></use></svg></span>
             <div class="wiz-hint-content">
-              <div class="wiz-hint-title" id="wizRecommendationTitle"></div>
-              <div class="wiz-hint-body" id="wizRecommendationBody"></div>
-              <button type="button" class="wiz-hint-action" id="wizRecommendationAction"></button>
+              <div class="wiz-hint-title">Couldn't create this prediction</div>
+              <div class="wiz-hint-body">Something went wrong validating your prediction. Review the details below and select Save to try again.</div>
             </div>
           </div>
           <div class="wiz-stepper" aria-hidden="true">
@@ -1143,7 +1209,7 @@ tr:hover .row-actions, tr:focus-within .row-actions { opacity:1; }
                 <div class="wiz-field" id="wizNameField">
                   <label class="wiz-label" for="wizPredictionNameInput">Prediction name<span class="wiz-required">*</span></label>
                   <input type="text" class="wiz-input" id="wizPredictionNameInput" placeholder="Enter a prediction name" oninput="clearWizNameError()">
-                  <span class="wiz-error-text">Required</span>
+                  <span class="wiz-error-text">Prediction name is required.</span>
                 </div>
                 <div class="wiz-field">
                   <label class="wiz-label" for="wizDescriptionInput">Description</label>
@@ -1191,7 +1257,7 @@ tr:hover .row-actions, tr:focus-within .row-actions { opacity:1; }
                     </button>
                     <span class="wiz-event-count" id="wizEventCount">(0/10)</span>
                   </div>
-                  <span class="wiz-error-text" id="wizGoalEventError">At least 1 goal event is required</span>
+                  <span class="wiz-error-text" id="wizGoalEventError">At least one goal event is required.</span>
                 </div>
               </div>
             </div>
@@ -1203,17 +1269,11 @@ tr:hover .row-actions, tr:focus-within .row-actions { opacity:1; }
               <h2 class="wiz-card-title">Schedule</h2>
               <div class="wiz-subsections">
                 <div class="wiz-subsection">
-                  <label class="wiz-label wiz-subsection-label">Do you want to schedule automatic refreshes?</label>
-                  <div class="wiz-radio-row" id="wizScheduleInferenceGroup">
-                    <label class="wiz-radio-option" onclick="selectWizScheduleInference('yes')">
-                      <span class="wiz-radio checked" data-value="yes"></span>
-                      <span>Yes</span>
-                    </label>
-                    <label class="wiz-radio-option" onclick="selectWizScheduleInference('no')">
-                      <span class="wiz-radio" data-value="no"></span>
-                      <span>No</span>
-                    </label>
-                  </div>
+                  <label class="wiz-checkbox-combo">
+                    <input type="checkbox" class="wiz-checkbox-input" id="wizScheduleEnabledCheckbox" checked onchange="handleWizScheduleEnabledChange(this)">
+                    <span class="wiz-checkbox-box" aria-hidden="true"></span>
+                    <span>Refresh on a schedule</span>
+                  </label>
                 </div>
 
                 <div class="wiz-subsection" id="wizScheduleTypeSection">
@@ -1233,10 +1293,10 @@ tr:hover .row-actions, tr:focus-within .row-actions { opacity:1; }
                     <div class="wiz-field" id="wizRunDateFieldWrap" style="max-width:320px;">
                       <label class="wiz-label" for="wizRunDateField">Run date<span class="wiz-required">*</span></label>
                       <div class="wiz-date-field" id="wizRunDateField" tabindex="0" onclick="openWizDatePicker(event, 'rundate')">
-                        <span class="wiz-date-value placeholder" id="wizRunDateValue">Starts on...</span>
+                        <span class="wiz-date-value placeholder" id="wizRunDateValue">Runs on...</span>
                         <svg width="20" height="20" fill="currentColor" fill-rule="evenodd"><use href="#datePickerOutlined20"></use></svg>
                       </div>
-                      <span class="wiz-error-text">Required</span>
+                      <span class="wiz-error-text">Run date is required.</span>
                     </div>
                   </div>
 
@@ -1246,6 +1306,14 @@ tr:hover .row-actions, tr:focus-within .row-actions { opacity:1; }
                       <label class="wiz-radio-option" onclick="selectWizFrequency('daily')">
                         <span class="wiz-radio" data-value="daily"></span>
                         <span>Daily</span>
+                      </label>
+                      <label class="wiz-radio-option" onclick="selectWizFrequency('weekly')">
+                        <span class="wiz-radio" data-value="weekly"></span>
+                        <span>Weekly on</span>
+                        <div class="wiz-select-trigger" data-select-key="weekday" style="width:150px" onclick="handleWizSelectTriggerClick(event, this); selectWizFrequency('weekly');">
+                          <span class="wiz-select-value" id="wizWeekdayValue">Monday</span>
+                          <svg width="20" height="20" fill="currentColor" fill-rule="evenodd"><use href="#directionalTriangleArrowDownSolid20"></use></svg>
+                        </div>
                       </label>
                       <label class="wiz-radio-option" onclick="selectWizFrequency('everyNDays')">
                         <span class="wiz-radio" data-value="everyNDays"></span>
@@ -1261,24 +1329,26 @@ tr:hover .row-actions, tr:focus-within .row-actions { opacity:1; }
                         <span>Monthly</span>
                       </label>
                     </div>
-                    <span class="wiz-error-text" id="wizFrequencyError" style="display:none;">Required</span>
+                    <span class="wiz-error-text" id="wizFrequencyError" style="display:none;">Please select a frequency.</span>
 
-                    <div class="wiz-date-range-row" style="margin-top:24px;">
+                    <div class="wiz-field" style="margin-top:24px;">
+                      <label class="wiz-label wiz-subsection-label">Active period<span class="wiz-required">*</span></label>
+                      <p class="wiz-field-hint">Set an end date to control usage and credit consumptions.</p>
+                    </div>
+                    <div class="wiz-date-range-row" style="margin-top:12px;">
                       <div class="wiz-field" id="wizStartDateFieldWrap" style="width:200px;">
-                        <label class="wiz-label" for="wizStartDateField">Start date<span class="wiz-required">*</span></label>
-                        <div class="wiz-date-field" id="wizStartDateField" tabindex="0" onclick="openWizDatePicker(event, 'startdate')">
-                          <span class="wiz-date-value placeholder" id="wizStartDateValue">Starts on...</span>
+                        <div class="wiz-date-field" id="wizStartDateField" tabindex="0" aria-label="Start date" aria-required="true" onclick="openWizDatePicker(event, 'startdate')">
+                          <span class="wiz-date-value placeholder" id="wizStartDateValue">Starts on</span>
                           <svg width="20" height="20" fill="currentColor" fill-rule="evenodd"><use href="#datePickerOutlined20"></use></svg>
                         </div>
-                        <span class="wiz-error-text">Required</span>
+                        <span class="wiz-error-text">Start date is required.</span>
                       </div>
                       <div class="wiz-field" id="wizEndDateFieldWrap" style="width:200px;">
-                        <label class="wiz-label" for="wizEndDateField">End date<span class="wiz-required">*</span></label>
-                        <div class="wiz-date-field" id="wizEndDateField" tabindex="0" onclick="openWizDatePicker(event, 'enddate')">
-                          <span class="wiz-date-value placeholder" id="wizEndDateValue">Ends on...</span>
+                        <div class="wiz-date-field" id="wizEndDateField" tabindex="0" aria-label="End date" aria-required="true" onclick="openWizDatePicker(event, 'enddate')">
+                          <span class="wiz-date-value placeholder" id="wizEndDateValue">Ends on</span>
                           <svg width="20" height="20" fill="currentColor" fill-rule="evenodd"><use href="#datePickerOutlined20"></use></svg>
                         </div>
-                        <span class="wiz-error-text" id="wizEndDateErrorText">Required</span>
+                        <span class="wiz-error-text" id="wizEndDateErrorText">End date is required.</span>
                       </div>
                     </div>
                   </div>
@@ -1300,7 +1370,7 @@ tr:hover .row-actions, tr:focus-within .row-actions { opacity:1; }
                 <div class="wiz-hint-content">
                   <div class="wiz-hint-title">After creating the prediction</div>
                   <ul class="wiz-hint-list">
-                    <li>Model training will start immediately and typically completes within 1–2 hours.</li>
+                    <li>Model training starts once the prediction is created and typically completes within 1–2 hours.</li>
                     <li>You'll receive an email notification once the prediction is ready.</li>
                     <li>Future retraining runs automatically. You can manually retrain the model anytime from the prediction list or details page.</li>
                     <li>The prediction attribute will be available in Segments and Reports once training is complete.</li>
@@ -1349,6 +1419,17 @@ tr:hover .row-actions, tr:focus-within .row-actions { opacity:1; }
               <div class="wiz-hint-title" id="detailRecommendationTitle"></div>
               <div class="wiz-hint-body" id="detailRecommendationBody"></div>
               <button type="button" class="wiz-hint-action" id="detailRecommendationAction"></button>
+            </div>
+          </div>
+
+          <!-- Failed-status error message — the only place Retry appears (never the row menu).
+               Retry starts a fresh training run and ignores the 7-day retraining restriction. -->
+          <div class="wiz-hint wiz-hint-error" id="detailFailedHint" hidden>
+            <span class="wiz-hint-icon"><svg width="20" height="20" fill="currentColor" fill-rule="evenodd"><use href="#warningSolid20"></use></svg></span>
+            <div class="wiz-hint-content">
+              <div class="wiz-hint-title">Training failed</div>
+              <div class="wiz-hint-body">Model training failed or didn't meet the required quality threshold. Review the configuration or try again.</div>
+              <button type="button" class="wiz-hint-action" id="detailFailedRetryBtn">Retry</button>
             </div>
           </div>
 
@@ -1408,28 +1489,33 @@ tr:hover .row-actions, tr:focus-within .row-actions { opacity:1; }
     </div>
   </div>
 
-  <!-- Shared Delete / Archive / Unarchive / Retrain confirmation dialog — header close-x dismisses
-       without performing the action (same as Cancel); content is filled per `kind` by
-       openRowActionDialog() in the page JS below. -->
+  <!-- Shared Delete / Archive / Unarchive / Retrain confirmation dialog (and the segment-dependency
+       variants of Delete/Archive) — header close-x dismisses without performing the action (same as
+       Cancel); content is filled per call by renderRowActionDialog() in the page JS below. -->
   <div class="pred-confirm-backdrop" id="rowActionBackdrop" hidden onclick="if (event.target === this) closeRowActionDialog()">
-    <div class="pred-confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="rowActionTitle">
+    <div class="pred-confirm-dialog" id="rowActionDialog" role="dialog" aria-modal="true" aria-labelledby="rowActionTitle">
       <div class="pred-confirm-header">
         <h2 id="rowActionTitle"></h2>
-        <button type="button" class="pred-dialog-close" aria-label="Close" onclick="closeRowActionDialog()">
+        <button type="button" class="pred-dialog-close" id="rowActionCloseBtn" aria-label="Close" onclick="closeRowActionDialog()">
           <svg width="20" height="20" fill="currentColor" fill-rule="evenodd"><use href="#crossOutlined20"></use></svg>
         </button>
       </div>
       <div class="pred-confirm-body" id="rowActionBody"></div>
+      <div class="pred-confirm-error" id="rowActionErrorText" hidden role="alert">
+        <svg fill="currentColor" fill-rule="evenodd"><use href="#warningSolid20"></use></svg>
+        <span id="rowActionErrorMessage"></span>
+      </div>
       <div class="pred-confirm-footer">
-        <button type="button" class="pred-confirm-btn pred-confirm-btn-secondary" onclick="closeRowActionDialog()">Cancel</button>
+        <button type="button" class="pred-confirm-btn pred-confirm-btn-secondary" id="rowActionCancelBtn" onclick="closeRowActionDialog()">Cancel</button>
         <button type="button" class="pred-confirm-btn pred-confirm-btn-primary" id="rowActionConfirmBtn" onclick="closeRowActionDialog()"></button>
       </div>
     </div>
   </div>
 
-  <div class="pred-toast" id="refreshToast" hidden>
-    <svg class="toast-icon" id="refreshToastIcon" width="16" height="16" fill="currentColor" fill-rule="evenodd"><use href="#infoOutlined16"></use></svg>
+  <div class="pred-toast" id="refreshToast" hidden role="status" aria-live="polite">
+    <svg class="toast-icon" id="refreshToastIcon" width="20" height="20" fill="currentColor" fill-rule="evenodd"><use href="#infoOutlined16"></use></svg>
     <span class="toast-icon-spinner" id="refreshToastSpinner" hidden></span>
+    <svg class="toast-icon toast-icon-success" id="refreshToastSuccessIcon" width="20" height="20" fill="currentColor" fill-rule="evenodd" hidden><use href="#checkCircleSolid20"></use></svg>
     <span class="toast-body" id="refreshToastBody"></span>
     <button type="button" class="toast-close" aria-label="Dismiss" onclick="hideToast()">
       <svg width="20" height="20" fill="currentColor" fill-rule="evenodd"><use href="#crossOutlined20"></use></svg>
@@ -1461,9 +1547,21 @@ tr:hover .row-actions, tr:focus-within .row-actions { opacity:1; }
   <div class="save-info-tooltip" id="saveInfoTooltip">
     <span class="save-info-tooltip-arrow" id="saveInfoTooltipArrow"></span>
     <ul>
-      <li>Model training will start immediately and typically completes within 1–2 hours.</li>
+      <li>Model training will complete within 1–2 hours.</li>
       <li>You'll receive an email notification once the prediction is ready.</li>
     </ul>
+  </div>
+  <div class="wiz-creating-overlay" id="wizCreatingOverlay" hidden role="status" aria-live="polite">
+    <div class="creating-content">
+      <div class="creating-spinner" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+      <div class="creating-text">
+        <div class="creating-progress-row">
+          <span class="creating-progress-label">Creating prediction</span>
+          <span class="creating-progress-pct" id="wizCreatingPct">0%</span>
+        </div>
+        <span class="creating-subtext">This can take a while...</span>
+      </div>
+    </div>
   </div>
 </div><!-- /.shell -->
 
@@ -1628,132 +1726,336 @@ tr:hover .row-actions, tr:focus-within .row-actions { opacity:1; }
     return '<span class="status-dot"></span>' + STATUS_LABEL[status] + spinner;
   }
 
-  // Recommendation badge markup for the listing table — shared by the "Last trained" (retrain) and
-  // "Last inference date" (refresh) cells. Real <button>, not a decorative span: hover/focus shows
-  // the shared #rowMenuTooltip (see showMenuTooltip/hideMenuTooltip), click performs the action via
-  // the existing handleRowMenuAction so it inherits that function's dialog/toast/guard behavior.
-  function recBadgeHtml(row, rec) {
-    if (!rec) return '';
-    return '<button type="button" class="rec-badge" data-tooltip="' + escapeHtml(JSON.stringify([rec.tooltip])) + '" aria-describedby="rowMenuTooltip"'
-      + ' onmouseenter="showMenuTooltip(this)" onmouseleave="hideMenuTooltip()" onfocus="showMenuTooltip(this)" onblur="hideMenuTooltip()"'
-      + ' onclick="event.stopPropagation(); handleRowMenuAction(\'' + rec.type + '\', \'' + row.id + '\')">'
-      + '<svg width="12" height="12" fill="currentColor" fill-rule="evenodd"><use href="#warningSolid20"></use></svg>' + rec.label + '</button>';
+  // Compact recommendation indicator for the listing table's date cells — shared by the
+  // "Last trained" (retrain) and "Last refreshed" (refresh) cells, per Figma node 835:37788's
+  // "Reminder touchpoints" note: mark the relevant date with a warning icon + the recommendation
+  // colour, and carry the full reason in a tooltip rather than inline text. Real <button>, not a
+  // decorative span, so the shared #rowMenuTooltip (see showMenuTooltip/hideMenuTooltip) is
+  // reachable by keyboard focus, not just mouse hover.
+  function dateCellHtml(text, rec) {
+    if (!rec) return '<div class="date-cell-value">' + escapeHtml(text) + '</div>';
+    var label = REC_LABEL[rec.type];
+    var detail = recListingTooltipBody(rec);
+    return '<button type="button" class="date-rec-trigger" data-tooltip="' + escapeHtml(JSON.stringify([label, detail])) + '"'
+      + ' aria-describedby="rowMenuTooltip" aria-label="' + escapeHtml(label + '. ' + detail) + '"'
+      + ' onmouseenter="showMenuTooltip(this)" onmouseleave="hideMenuTooltip()" onfocus="showMenuTooltip(this)" onblur="hideMenuTooltip()">'
+      + '<svg class="date-rec-icon" width="14" height="14" fill="currentColor" fill-rule="evenodd" aria-hidden="true"><use href="#warningSolid20"></use></svg>'
+      + '<span class="date-cell-value">' + escapeHtml(text) + '</span></button>';
   }
+
+  function formatPredictionWindow(days) {
+    return days + (days === 1 ? ' day' : ' days');
+  }
+
+  // ---- Shared date-formatting utility (ticket: "Update the date formats in the listing") ----
+  // Every date shown anywhere in this file — listing columns, recommendation tooltips, the retrain
+  // cooldown tooltip — goes through formatDate/formatDateTime so there is exactly one recipe for
+  // "MMM D, YYYY" / "MMM D, YYYY h:mm A", never a hardcoded per-cell string. DEMO_TODAY is a fixed
+  // reference "now" (not the real system clock) so every seeded row's date stays stable across
+  // runs; addDays derives each row's absolute date from its authored *DaysAgo count.
+  var MONTH_ABBR = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  var DEMO_TODAY = new Date(2026, 7, 29);
+
+  function addDays(date, days) {
+    var d = new Date(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours(), date.getMinutes());
+    d.setDate(d.getDate() + days);
+    return d;
+  }
+  function formatDate(date) {
+    return MONTH_ABBR[date.getMonth()] + ' ' + date.getDate() + ', ' + date.getFullYear();
+  }
+  function formatDateTime(date) {
+    var h = date.getHours();
+    var period = h >= 12 ? 'PM' : 'AM';
+    var h12 = h % 12; if (h12 === 0) h12 = 12;
+    var mi = date.getMinutes();
+    return formatDate(date) + ' ' + h12 + ':' + (mi < 10 ? '0' : '') + mi + ' ' + period;
+  }
+
+  function formatElapsedDays(n) {
+    n = n || 0;
+    return n + (n === 1 ? ' day' : ' days');
+  }
+
+  // Single source of truth for the refresh/retraining ruleset (listing-page indicators +
+  // detail/edit banner) — only Ready predictions are eligible. Let W = the row's prediction window
+  // in days. Retraining is checked first (>= 2 x W days since last trained) and always wins when
+  // both conditions are true: retraining refreshes the predictions automatically, so the two
+  // recommendations are never shown together. Refresh is only evaluated when retraining is not due
+  // (>= 1 x W days since last refreshed). Returns just the decision + the numbers behind it — each
+  // surface (listing tooltip vs. detail-page hint) formats its own copy from these via
+  // recListingTooltipBody / recDetailHintBody below, since Figma specifies different wording per
+  // surface without changing the underlying rule. Defined ahead of ROWS/renderRows below since the
+  // very first renderRows(ROWS) call (a few lines down) already needs it.
+  function getPredictionRecommendation(row) {
+    if (row.status !== 'ready' || !row.predictionWindow) return null;
+    var w = row.predictionWindow;
+    if ((row.lastTrainDaysAgo || 0) >= 2 * w) return { type: 'retrain', elapsedDays: row.lastTrainDaysAgo, window: w };
+    if ((row.lastRefreshedDaysAgo || 0) >= w) return { type: 'refresh', elapsedDays: row.lastRefreshedDaysAgo, window: w };
+    return null;
+  }
+
+  var REC_LABEL = { refresh: 'Refresh recommended', retrain: 'Retraining recommended' };
+  var REC_ACTION_LABEL = { refresh: 'Refresh now', retrain: 'Retrain model' };
+
+  // Listing-table indicator tooltip — cites the prediction window explicitly (Figma node 835:37788).
+  function recListingTooltipBody(rec) {
+    return rec.type === 'retrain'
+      ? 'Last trained ' + formatElapsedDays(rec.elapsedDays) + ' ago — more than twice the ' + rec.window + '-day prediction window.'
+      : 'Last refreshed ' + formatElapsedDays(rec.elapsedDays) + ' ago — longer than the ' + rec.window + '-day prediction window.';
+  }
+
+  // Details-page hint body — Figma nodes 748:29518 (refresh) / 604:37904 (retrain).
+  function recDetailHintBody(rec) {
+    return rec.type === 'retrain'
+      ? 'This model was last trained ' + formatElapsedDays(rec.elapsedDays) + ' ago. Retraining helps keep prediction quality up, and refreshes the results afterwards.'
+      : 'These results are ' + formatElapsedDays(rec.elapsedDays) + ' old. Refresh to bring them up to date.';
+  }
+
+  // Detail page + edit flow inline hint — shared shape, different id prefix ('detail' / 'wiz'). No
+  // close icon by design (see .wiz-hint-warning) and hidden whenever getPredictionRecommendation
+  // returns null, including every re-render after an action completes or the row's status changes.
+  // onAction lets each caller wire its own click behavior; the wizard/edit banner keeps routing
+  // through handleRowMenuAction (unchanged), while the detail page passes the real refresh/retrain
+  // flow (see startRefreshFlow/startRetrainFlow below).
+  // Details-page-only (per the ticket, the Edit page never shows either recommendation hint).
+  function renderDetailRecommendationBanner(row) {
+    var banner = document.getElementById('detailRecommendationBanner');
+    if (!banner) return;
+    var rec = row ? getPredictionRecommendation(row) : null;
+    banner.hidden = !rec;
+    if (!rec) return;
+    document.getElementById('detailRecommendationTitle').textContent = REC_LABEL[rec.type];
+    document.getElementById('detailRecommendationBody').textContent = recDetailHintBody(rec);
+    var actionBtn = document.getElementById('detailRecommendationAction');
+    actionBtn.textContent = REC_ACTION_LABEL[rec.type];
+    actionBtn.onclick = function () { handleDetailRecommendationAction(rec.type, row, actionBtn); };
+  }
+
+  // ---- Refresh now / Retrain model — functional flows triggered from the detail page's
+  // recommendation hint (Figma nodes 748:29518 / 604:37904). Refresh starts immediately (no
+  // confirmation); Retrain opens the shared row-action confirmation dialog first (see
+  // openRowActionDialog below) — activeRowOperations only guards the flow functions themselves
+  // once confirmed. Both flows key off the row object/id directly, never by name, so a duplicate
+  // display name can never cause the wrong row to update. Once a row's status leaves 'ready' the
+  // hint disappears (Ready-only visibility rule), which is the real duplicate-prevention for any
+  // later visit to this row's detail page. ----
+  var activeRowOperations = {};
+  var refreshCompletionTimers = {};
+
+  function startRetrainFlow(row) {
+    if (activeRowOperations[row.id]) return;
+    activeRowOperations[row.id] = 'retrain';
+    row.status = 'training';
+    renderRows(ROWS);
+    cancelCreatePrediction();
+    logActivity(row.id, 'Retraining started');
+    showToast(row.name + " is being retrained. We'll notify you once it's complete.", 'spinner');
+    // No completion simulation here by design — retraining keeps using the existing (open-ended)
+    // training lifecycle, same as a freshly created prediction.
+    delete activeRowOperations[row.id];
+  }
+
+  function startRefreshFlow(row) {
+    if (activeRowOperations[row.id]) return;
+    activeRowOperations[row.id] = 'refresh';
+    row.status = 'refreshing';
+    renderRows(ROWS);
+    cancelCreatePrediction();
+    logActivity(row.id, 'Refresh started');
+    showToast(row.name + ' is being refreshed.', 'spinner');
+    // ~30-60s simulated refresh duration, per the ticket's prototype-only interactive flow.
+    var delayMs = 30000 + Math.floor(Math.random() * 30000);
+    refreshCompletionTimers[row.id] = setTimeout(function () {
+      delete refreshCompletionTimers[row.id];
+      delete activeRowOperations[row.id];
+      row.status = 'ready';
+      row.lastRefreshedDaysAgo = 0;
+      row.lastRefreshedAt = new Date();
+      renderRows(ROWS);
+      if (currentDetailRowId === row.id) renderPredictionDetail(row);
+      logActivity(row.id, 'Refresh completed');
+      showToast(row.name + ' refreshed successfully', 'success');
+    }, delayMs);
+  }
+
+  // Retry (Details page "Failed" error message only, never the row menu) — starts a fresh
+  // training run. Deliberately NOT startRetrainFlow: retry ignores the 7-day retraining
+  // restriction entirely, since it isn't a retrain of an existing model, it's a new attempt.
+  function startRetryFlow(row) {
+    if (activeRowOperations[row.id]) return;
+    activeRowOperations[row.id] = 'retry';
+    row.status = 'training';
+    renderRows(ROWS);
+    cancelCreatePrediction();
+    logActivity(row.id, 'Training started (retry)');
+    showToast(row.name + ' starts training.', 'spinner');
+    delete activeRowOperations[row.id];
+  }
+
+  // Refresh starts immediately; Retrain always goes through the confirmation dialog first (see
+  // openRetrainDialog, whose confirm button calls startRetrainFlow) — never straight to
+  // startRetrainFlow from here.
+  window.handleDetailRecommendationAction = function (type, row, triggerEl) {
+    if (type === 'retrain') openRetrainDialog(row, triggerEl);
+    else if (type === 'refresh') startRefreshFlow(row);
+  };
 
   var ROWS = [
     { id: 'p01', name: '[Agent] SONY BRAVIA Theatre Bar 8 (HT-A9000)', status: 'ready', predType: 'likely',
-      lastTrain: '2 days ago', lastInference: '6 hours ago', created: '3 months ago',
-      lastTrainDaysAgo: 2, lastTrainDate: 'Jul 25 at 09:40',
-      hasNewSourceDataSinceLastRefresh: false, completedTrainingDaysSinceLastTraining: 0,
+      lastTrainDaysAgo: 2, lastRefreshedDaysAgo: 0, createdDaysAgo: 90,
       description: 'Predicts household accounts likely to buy the SONY BRAVIA Theatre Bar 8 soundbar within the prediction window.',
       predictionWindow: 30,
       goalEvents: [{ selectedEvent: 'product_purchased', constraints: [
         { attribute: 'product_category_1', operator: 'is one of', tags: ['Home Audio'], value: '', occComparator: '≥', occValue: '1' }
       ] }],
-      refreshSchedule: { inference: 'yes', scheduleType: 'recurring', runDate: null, frequency: 'daily', everyNDays: 7, startDate: { y: 2026, m: 5, d: 30 }, endDate: { y: 2026, m: 8, d: 30 } } },
+      refreshSchedule: { enabled: 'yes', scheduleType: 'recurring', runDate: null, frequency: 'daily', everyNDays: 7, startDate: { y: 2026, m: 5, d: 30 }, endDate: { y: 2026, m: 8, d: 30 } } },
     { id: 'p02', name: 'iPhone 15 Pro Max Upgrade Propensity', status: 'training', predType: 'likely',
-      lastTrain: '5 hours ago', lastInference: '1 hour ago', created: '2 weeks ago',
-      lastTrainDaysAgo: 0, lastTrainDate: 'Jul 27 at 04:10',
+      lastTrainDaysAgo: 0, lastRefreshedDaysAgo: 0, createdDaysAgo: 14,
       description: 'Flags existing iPhone owners likely to upgrade to the iPhone 15 Pro Max.',
       predictionWindow: 14,
       goalEvents: [{ selectedEvent: 'product_purchased', constraints: [
         { attribute: 'product_category_1', operator: 'is', value: 'Smartphones', tags: [], occComparator: '≥', occValue: '1' }
       ] }],
-      refreshSchedule: { inference: 'yes', scheduleType: 'onetime', runDate: { y: 2026, m: 7, d: 2 }, frequency: null, everyNDays: 7, startDate: null, endDate: null } },
+      refreshSchedule: { enabled: 'yes', scheduleType: 'onetime', runDate: { y: 2026, m: 7, d: 2 }, frequency: null, everyNDays: 7, startDate: null, endDate: null } },
     { id: 'p03', name: 'Dyson V15 Detect Cordless Vacuum Renewal', status: 'ready', predType: 'unlikely',
-      lastTrain: '1 week ago', lastInference: '3 days ago', created: '5 months ago',
-      lastTrainDaysAgo: 7, lastTrainDate: 'Jul 20 at 11:30',
-      hasNewSourceDataSinceLastRefresh: true, completedTrainingDaysSinceLastTraining: 2,
+      lastTrainDaysAgo: 7, lastRefreshedDaysAgo: 3, createdDaysAgo: 150,
       description: '',
-      predictionWindow: 60,
+      predictionWindow: 90,
       goalEvents: [{ selectedEvent: 'checkout_completed', constraints: [
         { attribute: 'purchase_amount', operator: 'is greater than', value: '300', tags: [], occComparator: '≥', occValue: '1' }
       ] }],
-      refreshSchedule: { inference: 'yes', scheduleType: 'recurring', runDate: null, frequency: 'everyNDays', everyNDays: 14, startDate: { y: 2026, m: 6, d: 1 }, endDate: { y: 2026, m: 11, d: 30 } } },
-    { id: 'p04', name: 'Samsung Galaxy Watch 7 Subscription Renewal', status: 'refreshing', predType: 'likely',
-      lastTrain: '9 days ago', lastInference: '12 hours ago', created: '1 month ago',
-      lastTrainDaysAgo: 9, lastTrainDate: 'Jul 18 at 08:15',
+      refreshSchedule: { enabled: 'yes', scheduleType: 'recurring', runDate: null, frequency: 'everyNDays', everyNDays: 14, startDate: { y: 2026, m: 6, d: 1 }, endDate: { y: 2026, m: 11, d: 30 } } },
+    { id: 'p04', name: 'Samsung Galaxy Watch 7 Subscription Renewal', status: 'ready', predType: 'likely',
+      lastTrainDaysAgo: 9, lastRefreshedDaysAgo: 0, createdDaysAgo: 30,
       description: 'Predicts subscribers likely to renew their Galaxy Watch 7 subscription plan.',
       predictionWindow: 7,
       goalEvents: [{ selectedEvent: 'product_purchased', constraints: [
         { attribute: 'product_category_1', operator: 'is one of', tags: ['Wearables'], value: '', occComparator: '≥', occValue: '1' }
       ] }],
-      refreshSchedule: { inference: 'yes', scheduleType: 'onetime', runDate: { y: 2026, m: 6, d: 30 }, frequency: null, everyNDays: 7, startDate: null, endDate: null } },
+      refreshSchedule: { enabled: 'yes', scheduleType: 'onetime', runDate: { y: 2026, m: 6, d: 30 }, frequency: null, everyNDays: 7, startDate: null, endDate: null } },
     { id: 'p05', name: 'Peloton Bike+ Membership Churn Risk', status: 'failed', predType: 'unlikely',
-      lastTrain: '2 weeks ago', lastInference: '1 week ago', created: '6 months ago',
-      lastTrainDaysAgo: 14, lastTrainDate: 'Jul 13 at 16:50',
+      lastTrainDaysAgo: 14, lastRefreshedDaysAgo: 7, createdDaysAgo: 180,
       description: 'Identifies members at risk of cancelling their Peloton Bike+ membership.',
       predictionWindow: 21,
       goalEvents: [{ selectedEvent: 'category_viewed', constraints: [
         { attribute: 'days_since_last_purchase', operator: 'is greater than', value: '45', tags: [], occComparator: '≥', occValue: '1' }
       ] }],
-      refreshSchedule: { inference: 'no', scheduleType: 'onetime', runDate: null, frequency: null, everyNDays: 7, startDate: null, endDate: null } },
+      refreshSchedule: { enabled: 'no', scheduleType: 'onetime', runDate: null, frequency: null, everyNDays: 7, startDate: null, endDate: null } },
     { id: 'p06', name: 'Nespresso Vertuo Pod Subscription Reorder', status: 'archived', predType: 'unlikely',
-      lastTrain: '3 months ago', lastInference: '2 months ago', created: '8 months ago',
-      lastTrainDaysAgo: 90, lastTrainDate: 'Apr 28 at 10:00',
+      lastTrainDaysAgo: 90, lastRefreshedDaysAgo: 60, createdDaysAgo: 240,
       description: 'Predicts households likely to reorder Nespresso Vertuo pods.',
       predictionWindow: 30,
       goalEvents: [{ selectedEvent: 'product_purchased', constraints: [
         { attribute: 'product_category_1', operator: 'contains', value: 'Coffee', tags: [], occComparator: '≥', occValue: '2' }
       ] }],
-      refreshSchedule: { inference: 'no', scheduleType: 'onetime', runDate: null, frequency: null, everyNDays: 7, startDate: null, endDate: null } },
+      refreshSchedule: { enabled: 'no', scheduleType: 'onetime', runDate: null, frequency: null, everyNDays: 7, startDate: null, endDate: null } },
     { id: 'p07', name: 'LG SIGNATURE OLED M4 65" Trade-in Intent', status: 'ready', predType: 'likely',
-      lastTrain: '8 days ago', lastInference: '30 minutes ago', created: '3 weeks ago',
-      lastTrainDaysAgo: 8, lastTrainDate: 'Jul 19 at 09:00',
-      hasNewSourceDataSinceLastRefresh: false, completedTrainingDaysSinceLastTraining: 45,
+      lastTrainDaysAgo: 8, lastRefreshedDaysAgo: 0, createdDaysAgo: 21,
       description: 'Flags owners of older LG OLED models likely to trade in for the M4 65".',
       predictionWindow: 45,
       goalEvents: [{ selectedEvent: 'product_added_to_wishlist', constraints: [
         { attribute: 'product_category_1', operator: 'is', value: 'TVs', tags: [], occComparator: '≥', occValue: '1' }
       ] }],
-      refreshSchedule: { inference: 'yes', scheduleType: 'recurring', runDate: null, frequency: 'monthly', everyNDays: 7, startDate: { y: 2026, m: 6, d: 15 }, endDate: { y: 2027, m: 0, d: 15 } } },
+      refreshSchedule: { enabled: 'yes', scheduleType: 'recurring', runDate: null, frequency: 'monthly', everyNDays: 7, startDate: { y: 2026, m: 6, d: 15 }, endDate: { y: 2027, m: 0, d: 15 } } },
     { id: 'p08', name: 'Instant Pot Pro Plus Repeat Purchase', status: 'training', predType: 'unlikely',
-      lastTrain: '20 minutes ago', lastInference: '10 minutes ago', created: '5 days ago',
-      lastTrainDaysAgo: 0, lastTrainDate: 'Jul 27 at 06:40',
+      lastTrainDaysAgo: 0, lastRefreshedDaysAgo: 0, createdDaysAgo: 5,
       description: 'Predicts households likely to repurchase Instant Pot Pro Plus accessories.',
       predictionWindow: 30,
       goalEvents: [{ selectedEvent: 'product_purchased', constraints: [
         { attribute: 'product_category_1', operator: 'is one of', tags: ['Kitchen'], value: '', occComparator: '≥', occValue: '1' }
       ] }],
-      refreshSchedule: { inference: 'yes', scheduleType: 'onetime', runDate: { y: 2026, m: 7, d: 5 }, frequency: null, everyNDays: 7, startDate: null, endDate: null } },
-    { id: 'p09', name: 'Bose QuietComfort Ultra Earbuds Upsell', status: 'refreshing', predType: 'likely',
-      lastTrain: '1 day ago', lastInference: '2 hours ago', created: '2 months ago',
-      lastTrainDaysAgo: 1, lastTrainDate: 'Jul 26 at 14:20',
+      refreshSchedule: { enabled: 'yes', scheduleType: 'onetime', runDate: { y: 2026, m: 7, d: 5 }, frequency: null, everyNDays: 7, startDate: null, endDate: null } },
+    { id: 'p09', name: 'Bose QuietComfort Ultra Earbuds Upsell', status: 'ready', predType: 'likely',
+      lastTrainDaysAgo: 1, lastRefreshedDaysAgo: 0, createdDaysAgo: 60,
       description: 'Predicts customers likely to upsell to Bose QuietComfort Ultra Earbuds.',
       predictionWindow: 14,
       goalEvents: [{ selectedEvent: 'product_purchased', constraints: [
         { attribute: 'product_category_1', operator: 'is one of', tags: ['Audio'], value: '', occComparator: '≥', occValue: '1' }
       ] }],
-      refreshSchedule: { inference: 'yes', scheduleType: 'recurring', runDate: null, frequency: 'daily', everyNDays: 7, startDate: { y: 2026, m: 5, d: 1 }, endDate: { y: 2026, m: 10, d: 1 } } },
-    { id: 'p10', name: 'Product Purchase (Aug 10 scenario)', status: 'ready', predType: 'likely',
-      lastTrain: '9 days ago', lastInference: '1 day ago', created: '4 months ago',
-      lastTrainDaysAgo: 9, lastTrainDate: 'Aug 1 at 09:00',
-      hasNewSourceDataSinceLastRefresh: true, completedTrainingDaysSinceLastTraining: 5,
+      refreshSchedule: { enabled: 'yes', scheduleType: 'recurring', runDate: null, frequency: 'daily', everyNDays: 7, startDate: { y: 2026, m: 5, d: 1 }, endDate: { y: 2026, m: 10, d: 1 } } },
+    { id: 'p10', name: 'Product Purchase (Refresh scenario)', status: 'ready', predType: 'likely',
+      lastTrainDaysAgo: 8, lastRefreshedDaysAgo: 8, createdDaysAgo: 120,
       description: 'Predicts households likely to complete a product purchase within the prediction window.',
       predictionWindow: 7,
       goalEvents: [{ selectedEvent: 'product_purchased', constraints: [
         { attribute: 'product_category_1', operator: 'is one of', tags: ['All categories'], value: '', occComparator: '≥', occValue: '1' }
       ] }],
-      refreshSchedule: { inference: 'yes', scheduleType: 'recurring', runDate: null, frequency: 'daily', everyNDays: 7, startDate: { y: 2026, m: 5, d: 1 }, endDate: { y: 2026, m: 11, d: 1 } } },
-    { id: 'p11', name: 'Product Purchase (Aug 15 scenario)', status: 'ready', predType: 'likely',
-      lastTrain: '14 days ago', lastInference: '6 days ago', created: '4 months ago',
-      lastTrainDaysAgo: 14, lastTrainDate: 'Aug 1 at 09:00',
-      hasNewSourceDataSinceLastRefresh: true, completedTrainingDaysSinceLastTraining: 7,
+      refreshSchedule: { enabled: 'yes', scheduleType: 'recurring', runDate: null, frequency: 'daily', everyNDays: 7, startDate: { y: 2026, m: 5, d: 1 }, endDate: { y: 2026, m: 11, d: 1 } } },
+    { id: 'p11', name: 'Product Purchase (Retraining scenario)', status: 'ready', predType: 'likely',
+      lastTrainDaysAgo: 20, lastRefreshedDaysAgo: 20, createdDaysAgo: 120,
       description: 'Predicts households likely to complete a product purchase within the prediction window.',
       predictionWindow: 7,
       goalEvents: [{ selectedEvent: 'product_purchased', constraints: [
         { attribute: 'product_category_1', operator: 'is one of', tags: ['All categories'], value: '', occComparator: '≥', occValue: '1' }
       ] }],
-      refreshSchedule: { inference: 'yes', scheduleType: 'recurring', runDate: null, frequency: 'daily', everyNDays: 7, startDate: { y: 2026, m: 5, d: 1 }, endDate: { y: 2026, m: 11, d: 1 } } }
+      refreshSchedule: { enabled: 'yes', scheduleType: 'recurring', runDate: null, frequency: 'daily', everyNDays: 7, startDate: { y: 2026, m: 5, d: 1 }, endDate: { y: 2026, m: 11, d: 1 } } }
   ];
 
-  var ACTIVITY_ROWS = [
-    { time: '2026-05-04 15:00', by: 'Agent', account: 'xxxxx@appier.com', activity: 'Model trained' },
-    { time: '2026-05-03 09:12', by: 'System', account: 'xxxxx@appier.com', activity: 'Refresh now' },
-    { time: '2026-05-01 18:45', by: 'User', account: 'xxxxx@appier.com', activity: 'Edited' },
-    { time: '2026-04-28 11:20', by: 'User', account: 'xxxxx@appier.com', activity: 'Archived' },
-    { time: '2026-04-20 08:05', by: 'System', account: 'xxxxx@appier.com', activity: 'Created' }
+  // Derive each row's absolute lastTrainAt / lastRefreshedAt / createdAt from its authored
+  // *DaysAgo count (single source of truth for both the recommendation ruleset and the display
+  // dates, so the two can never drift apart). lastRefreshedAt stays null for a prediction that has
+  // never been refreshed (rendered as "—"), same as lastRefreshedDaysAgo being absent.
+  ROWS.forEach(function (r, idx) {
+    r.lastTrainAt = addDays(DEMO_TODAY, -(r.lastTrainDaysAgo || 0));
+    r.lastRefreshedAt = (r.lastRefreshedDaysAgo != null) ? addDays(DEMO_TODAY, -r.lastRefreshedDaysAgo) : null;
+    r.createdAt = addDays(DEMO_TODAY, -(r.createdDaysAgo || 0));
+    r.createdAt.setHours(9 + (idx * 3) % 10, (idx * 13) % 60, 0, 0);
+  });
+
+  // ---- Segment dependencies (Delete blocker / Archive-with-segments) — which segments currently
+  // filter on which predictions, keyed by the prediction's stable ID (never its display name).
+  // Most demo predictions have none; a couple are deliberately seeded with dependencies so the
+  // blocked-delete and segment-aware-archive flows are reachable. ----
+  var SEGMENTS = [
+    { id: 'seg01', name: 'SONY BRAVIA – likely buyers', lastUpdatedAt: addDays(DEMO_TODAY, -5), predictionIds: ['p01'] },
+    { id: 'seg02', name: 'Smart TV upsell', lastUpdatedAt: addDays(DEMO_TODAY, -12), predictionIds: ['p01'] },
+    { id: 'seg03', name: 'Loyalty tier 2 – active', lastUpdatedAt: addDays(DEMO_TODAY, -2), predictionIds: ['p04'] }
   ];
+
+  function getSegmentsUsingPrediction(predictionId) {
+    return SEGMENTS.filter(function (s) { return s.predictionIds.indexOf(predictionId) !== -1; });
+  }
+  // Simulates the user visiting the segment and removing the prediction filter there themselves —
+  // used only by the Delete blocker flow (Archive explicitly must NOT do this; see openArchiveFlow).
+  function removeSegmentDependency(segmentId, predictionId) {
+    var seg = SEGMENTS.filter(function (s) { return s.id === segmentId; })[0];
+    if (!seg) return;
+    var idx = seg.predictionIds.indexOf(predictionId);
+    if (idx !== -1) seg.predictionIds.splice(idx, 1);
+  }
+
+  // ---- Per-prediction activity log, keyed by stable ID (never display name) — seeded from each
+  // row's actual lifecycle timestamps (created/trained/refreshed/status) so entries reflect state
+  // the prototype genuinely tracks, then appended to live as refresh/retrain/retry/archive/unarchive
+  // actions happen during the session. ----
+  var ACTIVITY_LOG_BY_ROW_ID = {};
+
+  function logActivity(rowId, activity, by) {
+    if (!ACTIVITY_LOG_BY_ROW_ID[rowId]) ACTIVITY_LOG_BY_ROW_ID[rowId] = [];
+    ACTIVITY_LOG_BY_ROW_ID[rowId].unshift({ at: new Date(), by: by || 'User', account: 'xxxxx@appier.com', activity: activity });
+  }
+
+  function seedActivityLog(row) {
+    var entries = [];
+    function add(activity, at, by) { entries.push({ at: at, by: by, account: 'xxxxx@appier.com', activity: activity }); }
+    add('Prediction created', row.createdAt, 'User');
+    add('Validation completed', row.createdAt, 'System');
+    if (row.status === 'training') {
+      add('Training started', row.lastTrainAt, 'System');
+    } else if (row.status === 'failed') {
+      add('Training started', row.lastTrainAt, 'System');
+      add('Training failed', row.lastTrainAt, 'System');
+    } else {
+      add('Training completed', row.lastTrainAt, 'System');
+      if (row.lastRefreshedAt) add('Refresh completed', row.lastRefreshedAt, 'System');
+      if (row.status === 'refreshing') add('Refresh started', DEMO_TODAY, 'User');
+      if (row.status === 'archived') add('Archived', row.lastRefreshedAt || row.lastTrainAt, 'User');
+    }
+    entries.sort(function (a, b) { return b.at.getTime() - a.at.getTime(); });
+    ACTIVITY_LOG_BY_ROW_ID[row.id] = entries;
+  }
+  ROWS.forEach(seedActivityLog);
 
   var sortState = { key: null, dir: 'desc' };
 
@@ -1779,12 +2081,15 @@ tr:hover .row-actions, tr:focus-within .row-actions { opacity:1; }
         + '</div></div></td>'
         + '<td><span class="status-pill status-' + r.status + '">' + statusPillInnerHtml(r.status) + '</span></td>'
         + '<td><span class="pred-type ' + r.predType + '">' + predTypeIcon(r.predType) + (r.predType === 'likely' ? 'Likely to perform' : 'Unlikely to perform') + '</span></td>'
-        + '<td class="date-cell"><div class="date-cell-value">' + r.lastTrain + '</div>' + (rec && rec.type === 'retrain' ? recBadgeHtml(r, rec) : '') + '</td>'
-        + '<td class="date-cell"><div class="date-cell-value">' + r.lastInference + '</div>' + (rec && rec.type === 'refresh' ? recBadgeHtml(r, rec) : '') + '</td>'
-        + '<td class="date-cell">' + r.created + '</td>'
+        + '<td>' + formatPredictionWindow(r.predictionWindow) + '</td>'
+        + '<td class="date-cell">' + dateCellHtml(formatDate(r.lastTrainAt), rec && rec.type === 'retrain' ? rec : null) + '</td>'
+        + '<td class="date-cell">' + dateCellHtml(r.lastRefreshedAt ? formatDate(r.lastRefreshedAt) : '—', rec && rec.type === 'refresh' ? rec : null) + '</td>'
+        + '<td class="date-cell">' + formatDateTime(r.createdAt) + '</td>'
         + '</tr>';
     }).join('');
   }
+
+  var SORT_DATE_FIELD = { lastTrain: 'lastTrainAt', lastRefreshed: 'lastRefreshedAt', created: 'createdAt' };
 
   window.sortBy = function (key) {
     if (sortState.key === key) {
@@ -1793,10 +2098,18 @@ tr:hover .row-actions, tr:focus-within .row-actions { opacity:1; }
       sortState.key = key;
       sortState.dir = 'asc';
     }
-    // Relative-time strings aren't chronologically parseable here; toggle direction
-    // by reversing row order around the original array so the affordance is real.
+    // Sort by the underlying Date timestamp, never the formatted display string.
+    var dateField = SORT_DATE_FIELD[key];
     var sorted = ROWS.slice();
-    if (sortState.dir === 'desc') sorted.reverse();
+    if (dateField) {
+      sorted.sort(function (a, b) {
+        var av = a[dateField] ? a[dateField].getTime() : -Infinity;
+        var bv = b[dateField] ? b[dateField].getTime() : -Infinity;
+        return sortState.dir === 'asc' ? av - bv : bv - av;
+      });
+    } else if (sortState.dir === 'desc') {
+      sorted.reverse();
+    }
     renderRows(sorted);
 
     document.querySelectorAll('.pred-table th[data-sortable]').forEach(function (th) {
@@ -1813,85 +2126,86 @@ tr:hover .row-actions, tr:focus-within .row-actions { opacity:1; }
 
   renderRows(ROWS);
 
-  // ---- Row kebab menu ----
-  // Disable-state resolvers: status is checked before recency so Training/Failed/Archived
-  // rows always show the status-reason tooltip regardless of lastTrainDaysAgo.
-  function getRetrainInfo(row) {
-    if (row.status !== 'ready') {
-      return { disabled: true, tooltip: ['Only Ready models can be retrained.', 'Wait until training finishes, then retrain.'] };
+  // ---- Row kebab menu (Figma nodes 881:50242 action matrix + 354:30400 "Menu Actions") ----
+  // Flat 6-item order: Refresh now, Schedule refresh, Retrain model, Activity log, Archive/
+  // Unarchive, Delete — no nested submenu. Status-specific reasons for each disabled item below;
+  // a generic fallback only covers combinations the matrix doesn't call out.
+  var STATUS_REASON = {
+    refresh: {
+      training: "Refresh isn't available while the prediction is training.",
+      refreshing: 'This prediction is already refreshing.',
+      failed: "Refresh isn't available for a failed prediction. Use Retry from the error message instead.",
+      archived: 'Unarchive this prediction to refresh it.'
+    },
+    schedule: {
+      failed: "Scheduling isn't available for a failed prediction.",
+      archived: 'Unarchive this prediction to manage its refresh schedule.'
+    },
+    retrain: {
+      training: "Retraining isn't available while the prediction is training.",
+      refreshing: "Retraining isn't available while the prediction is refreshing.",
+      failed: "Retraining isn't available for a failed prediction. Use Retry from the error message instead.",
+      archived: 'Unarchive this prediction to retrain it.'
+    },
+    archive: {
+      training: 'Model cannot be archived while training or refreshing.',
+      refreshing: 'Model cannot be archived while training or refreshing.',
+      failed: "A failed prediction can't be archived."
+    },
+    del: {
+      training: 'Model cannot be deleted while training or refreshing.',
+      refreshing: 'Model cannot be deleted while training or refreshing.'
     }
-    if (row.lastTrainDaysAgo < 7) {
-      return { disabled: true, tooltip: ['Last retrained on ' + row.lastTrainDate + '.', 'Retraining is available once every 7 days.'] };
-    }
-    return { disabled: false, tooltip: null };
-  }
+  };
 
-  function getArchiveInfo(row) {
-    var isArchived = row.status === 'archived';
-    var disabled = row.status === 'training' || row.status === 'refreshing';
+  // Single source of truth for row-menu action availability — both buildRowMenuHtml (the UI) and
+  // every action handler read from this, so a disabled action can never be triggered by the two
+  // drifting out of sync. Retraining eligibility is computed from lastTrainDaysAgo (derived from
+  // the row's real lastTrainAt timestamp, see the ROWS.forEach block above), never from display text.
+  function getRowActionAvailability(row) {
+    var status = row.status;
+    var refreshNow = { enabled: status === 'ready', tooltip: status === 'ready' ? null : [STATUS_REASON.refresh[status] || "Refresh isn't available for this prediction."] };
+    var scheduleRefresh = {
+      enabled: status === 'ready' || status === 'training' || status === 'refreshing',
+      tooltip: (status === 'failed' || status === 'archived') ? [STATUS_REASON.schedule[status]] : null
+    };
+    var retrain;
+    if (status !== 'ready') {
+      retrain = { enabled: false, tooltip: [STATUS_REASON.retrain[status] || 'Only Ready predictions can be retrained.'] };
+    } else if (row.lastTrainDaysAgo < 7) {
+      retrain = { enabled: false, tooltip: ['Last retrained on ' + formatDate(row.lastTrainAt) + '.', 'Retraining is available once every 7 days.'] };
+    } else {
+      retrain = { enabled: true, tooltip: null };
+    }
+    var isArchived = status === 'archived';
+    var archive = isArchived ? null : {
+      enabled: status === 'ready',
+      tooltip: status === 'ready' ? null : [STATUS_REASON.archive[status] || "Archiving isn't available for this prediction."]
+    };
+    var unarchive = isArchived ? { enabled: true, tooltip: null } : null;
+    var del = {
+      enabled: status === 'ready' || status === 'failed' || status === 'archived',
+      tooltip: (status === 'training' || status === 'refreshing') ? [STATUS_REASON.del[status]] : null
+    };
     return {
-      kind: isArchived ? 'unarchive' : 'archive',
-      label: isArchived ? 'Unarchive' : 'Archive',
-      icon: isArchived ? 'emptyBoxOutlined20' : 'archivedOutlined20',
-      disabled: disabled,
-      tooltip: disabled ? ["This prediction can't be archived while it's training or refreshing.", 'Try again once it\u2019s Ready.'] : null
+      refreshNow: refreshNow, scheduleRefresh: scheduleRefresh, retrain: retrain,
+      activityLog: { enabled: true, tooltip: null }, archive: archive, unarchive: unarchive, del: del
     };
   }
 
-  function getDeleteInfo(row) {
-    var disabled = row.status === 'training' || row.status === 'refreshing';
-    return { disabled: disabled, tooltip: disabled ? ["This prediction can't be deleted while it's training or refreshing.", 'Try again once it\u2019s Ready.'] : null };
-  }
-
-  // Single source of truth for the "Refresh recommended" / "Retraining recommended" warning
-  // (listing-page badges + detail/edit banner) — see change-logs for the underlying ticket.
-  // Retrain is checked first so it always wins when both conditions are true (never show both).
-  function getPredictionRecommendation(row) {
-    if (row.status !== 'ready') return null;
-    var retrainingRecommended = !!row.predictionWindow &&
-      (row.completedTrainingDaysSinceLastTraining || 0) >= row.predictionWindow;
-    if (retrainingRecommended) {
-      return {
-        type: 'retrain', label: 'Retraining recommended',
-        tooltip: 'New training data is available. Retrain the model to help maintain prediction quality. Predictions will refresh automatically after retraining.',
-        action: 'Retrain model'
-      };
-    }
-    if (row.hasNewSourceDataSinceLastRefresh) {
-      return {
-        type: 'refresh', label: 'Refresh recommended',
-        tooltip: 'New source data is available. Refresh the prediction to generate up-to-date results.',
-        action: 'Refresh prediction'
-      };
-    }
-    return null;
-  }
-
-  // Detail page + edit flow inline banner — shared shape, different id prefix ('detail' / 'wiz').
-  // Hidden whenever getPredictionRecommendation returns null (including every re-render after an
-  // action completes), and its action button routes through the same handleRowMenuAction used by
-  // the row kebab menu and the listing badges, so it inherits the same guard/toast/dialog behavior.
-  function renderRecommendationBanner(prefix, row) {
-    var banner = document.getElementById(prefix + 'RecommendationBanner');
-    if (!banner) return;
-    var rec = row ? getPredictionRecommendation(row) : null;
-    banner.hidden = !rec;
-    if (!rec) return;
-    document.getElementById(prefix + 'RecommendationTitle').textContent = rec.label;
-    document.getElementById(prefix + 'RecommendationBody').textContent = rec.tooltip;
-    var actionBtn = document.getElementById(prefix + 'RecommendationAction');
-    actionBtn.textContent = rec.action;
-    actionBtn.onclick = function () { handleRowMenuAction(rec.type, row.id); };
-  }
-
-  // Renders one non-Refresh menu row. Disabled rows get a hover tooltip and no onclick
-  // (so they are inert — not just visually muted); enabled rows get the click handler.
+  // Renders one menu row. Disabled items stay visible (never removed) with the DS Main disabled
+  // styling, a hover/focus tooltip explaining why when the matrix defines one, and no click/keydown
+  // handler at all — not just a guarded no-op — so they're genuinely inert. Enabled items are real
+  // tabbable menu items (role="menuitem") so the panel's own keydown handler (see toggleRowMenu)
+  // can arrow-navigate between them and activate the focused one with Enter/Space.
   function menuActionItemHtml(opts) {
-    var classes = 'menu-item' + (opts.disabled ? ' disabled' : '');
-    var attrs = '';
-    if (opts.disabled) {
-      if (opts.tooltip) {
-        attrs += ' data-tooltip="' + escapeHtml(JSON.stringify(opts.tooltip)) + '" onmouseenter="showMenuTooltip(this)" onmouseleave="hideMenuTooltip()"';
+    var enabled = opts.avail.enabled;
+    var classes = 'menu-item' + (enabled ? '' : ' disabled');
+    var attrs = ' role="menuitem" tabindex="' + (enabled ? '0' : '-1') + '"';
+    if (!enabled) {
+      attrs += ' aria-disabled="true"';
+      if (opts.avail.tooltip) {
+        attrs += ' data-tooltip="' + escapeHtml(JSON.stringify(opts.avail.tooltip)) + '" onmouseenter="showMenuTooltip(this)" onmouseleave="hideMenuTooltip()" onfocus="showMenuTooltip(this)" onblur="hideMenuTooltip()"';
       }
     } else {
       attrs += ' onclick="handleRowMenuAction(\'' + opts.action + '\', \'' + opts.rowId + '\')"';
@@ -1903,28 +2217,29 @@ tr:hover .row-actions, tr:focus-within .row-actions { opacity:1; }
   }
 
   function buildRowMenuHtml(row) {
-    var retrain = getRetrainInfo(row);
-    var archive = getArchiveInfo(row);
-    var del = getDeleteInfo(row);
-
-    var refreshHtml = '<div class="menu-item-wrap" onmouseenter="openRefreshSubmenu(this)" onmouseleave="scheduleCloseRefreshSubmenu()">'
-      + '<div class="menu-item">'
-      + '<svg width="20" height="20" fill="currentColor" fill-rule="evenodd"><use href="#refreshOutlined20"></use></svg>'
-      + '<span class="menu-item-label">Refresh</span>'
-      + '<svg width="20" height="20" fill="currentColor" fill-rule="evenodd"><use href="#directionalTriangleArrowRightSolid20"></use></svg>'
-      + '</div>'
-      + '<div class="menu-submenu" id="refreshSubmenu">'
-      + '<div class="menu-item" onclick="handleRowMenuAction(\'editSchedule\', \'' + row.id + '\')"><span class="menu-item-label">Edit refresh schedule</span></div>'
-      + '<div class="menu-item" onclick="handleRowMenuAction(\'refresh\', \'' + row.id + '\')"><span class="menu-item-label">Refresh now</span></div>'
-      + '</div>'
-      + '</div>';
-
-    return refreshHtml
-      + menuActionItemHtml({ icon: 'rerunOutlined20', label: 'Retrain model', action: 'retrain', rowId: row.id, disabled: retrain.disabled, tooltip: retrain.tooltip })
-      + menuActionItemHtml({ icon: 'viewHistoryOutlined20', label: 'Activity log', action: 'activity', rowId: row.id, disabled: false })
-      + menuActionItemHtml({ icon: archive.icon, label: archive.label, action: archive.kind, rowId: row.id, disabled: archive.disabled, tooltip: archive.tooltip })
-      + menuActionItemHtml({ icon: 'trashOutlined20', label: 'Delete', action: 'delete', rowId: row.id, disabled: del.disabled, tooltip: del.tooltip });
+    var avail = getRowActionAvailability(row);
+    var items = [
+      { icon: 'refreshOutlined20', label: 'Refresh now', action: 'refresh', avail: avail.refreshNow },
+      { icon: 'scheduleOutlined24', label: 'Schedule refresh', action: 'schedule', avail: avail.scheduleRefresh },
+      { icon: 'rerunOutlined20', label: 'Retrain model', action: 'retrain', avail: avail.retrain },
+      { icon: 'viewHistoryOutlined20', label: 'Activity log', action: 'activity', avail: avail.activityLog }
+    ];
+    if (avail.archive) items.push({ icon: 'archivedOutlined20', label: 'Archive', action: 'archive', avail: avail.archive });
+    if (avail.unarchive) items.push({ icon: 'emptyBoxOutlined20', label: 'Unarchive', action: 'unarchive', avail: avail.unarchive });
+    items.push({ icon: 'trashOutlined20', label: 'Delete', action: 'delete', avail: avail.del });
+    return items.map(function (it) {
+      it.rowId = row.id;
+      return menuActionItemHtml(it);
+    }).join('');
   }
+
+  function rowMenuFocusableItems() {
+    var panel = document.getElementById('rowMenuPanel');
+    return Array.prototype.slice.call(panel.querySelectorAll('.menu-item[tabindex="0"]'));
+  }
+
+  var rowMenuTriggerEl = null;
+  var rowMenuKeydownHandler = null;
 
   window.toggleRowMenu = function (evt, rowId) {
     evt.stopPropagation();
@@ -1936,12 +2251,30 @@ tr:hover .row-actions, tr:focus-within .row-actions { opacity:1; }
     var row = ROWS.filter(function (r) { return r.id === rowId; })[0];
     if (!row) return;
     panel.dataset.rowId = rowId;
+    panel.setAttribute('role', 'menu');
     panel.innerHTML = buildRowMenuHtml(row);
     var btn = evt.currentTarget;
+    rowMenuTriggerEl = btn;
     var rect = btn.getBoundingClientRect();
     panel.style.top = (rect.bottom + 4) + 'px';
     panel.style.left = (rect.right - 200) + 'px';
     panel.classList.add('open');
+
+    var items = rowMenuFocusableItems();
+    if (items.length) items[0].focus();
+
+    // Arrow keys cycle between enabled items only (disabled ones sit at tabindex="-1", so they're
+    // never in this list); Enter/Space activates the focused item; Escape closes and returns focus
+    // to the kebab trigger (closeRowMenu handles that uniformly for every close path).
+    rowMenuKeydownHandler = function (e) {
+      var list = rowMenuFocusableItems();
+      var idx = list.indexOf(document.activeElement);
+      if (e.key === 'Escape') { e.preventDefault(); closeRowMenu(); return; }
+      if (e.key === 'ArrowDown') { e.preventDefault(); if (list.length) list[(idx + 1 + list.length) % list.length].focus(); return; }
+      if (e.key === 'ArrowUp') { e.preventDefault(); if (list.length) list[(idx - 1 + list.length) % list.length].focus(); return; }
+      if ((e.key === 'Enter' || e.key === ' ') && idx !== -1) { e.preventDefault(); document.activeElement.click(); }
+    };
+    document.addEventListener('keydown', rowMenuKeydownHandler);
   };
 
   function closeRowMenu() {
@@ -1949,48 +2282,11 @@ tr:hover .row-actions, tr:focus-within .row-actions { opacity:1; }
     panel.classList.remove('open');
     delete panel.dataset.rowId;
     hideMenuTooltip();
-    if (refreshSubmenuTimer) { clearTimeout(refreshSubmenuTimer); refreshSubmenuTimer = null; }
+    if (rowMenuKeydownHandler) { document.removeEventListener('keydown', rowMenuKeydownHandler); rowMenuKeydownHandler = null; }
+    if (rowMenuTriggerEl && typeof rowMenuTriggerEl.focus === 'function') rowMenuTriggerEl.focus();
+    rowMenuTriggerEl = null;
   }
   window.closeRowMenu = closeRowMenu;
-
-  // ---- Refresh nested submenu (hover-open, close-delay so item -> submenu doesn't flicker) ----
-  // Position is recomputed on every open (and on resize) from the "Refresh" item's live
-  // bounding rect — never cached — so it's always correct for wherever the parent row-menu
-  // panel currently sits, including near the right/bottom edge of the viewport.
-  var refreshSubmenuTimer = null;
-  var refreshSubmenuAnchor = null;
-
-  function positionRefreshSubmenu() {
-    var sub = document.getElementById('refreshSubmenu');
-    if (!sub || !refreshSubmenuAnchor || !sub.classList.contains('open')) return;
-    var rect = refreshSubmenuAnchor.getBoundingClientRect();
-    var subWidth = 200; // matches .menu-submenu's fixed width — sub is display:none pre-open, so offsetWidth can't be trusted yet
-    var margin = 8;
-    var opensRight = (rect.right + subWidth) <= (window.innerWidth - margin);
-    sub.style.left = (opensRight ? rect.right : rect.left - subWidth) + 'px';
-    var subHeight = sub.offsetHeight;
-    var top = rect.top;
-    if (top + subHeight > window.innerHeight - margin) top = Math.max(margin, window.innerHeight - subHeight - margin);
-    sub.style.top = top + 'px';
-  }
-
-  window.openRefreshSubmenu = function (wrapEl) {
-    if (refreshSubmenuTimer) { clearTimeout(refreshSubmenuTimer); refreshSubmenuTimer = null; }
-    refreshSubmenuAnchor = wrapEl || refreshSubmenuAnchor;
-    var sub = document.getElementById('refreshSubmenu');
-    if (!sub) return;
-    sub.classList.add('open');
-    positionRefreshSubmenu();
-  };
-  window.scheduleCloseRefreshSubmenu = function () {
-    if (refreshSubmenuTimer) clearTimeout(refreshSubmenuTimer);
-    refreshSubmenuTimer = setTimeout(function () {
-      var sub = document.getElementById('refreshSubmenu');
-      if (sub) sub.classList.remove('open');
-      refreshSubmenuAnchor = null;
-    }, 150);
-  };
-  window.addEventListener('resize', positionRefreshSubmenu);
 
   // ---- Disabled menu-item tooltip (positioned above the hovered item, arrow pointing down) ----
   window.showMenuTooltip = function (el) {
@@ -2015,24 +2311,36 @@ tr:hover .row-actions, tr:focus-within .row-actions { opacity:1; }
     if (e.key === 'Escape') hideMenuTooltip();
   });
 
+  // Every branch re-validates against getRowActionAvailability (the same source of truth
+  // buildRowMenuHtml used to render the item) before doing anything — a disabled item has no
+  // onclick at all, but this guard also covers Enter/Space activation and any other programmatic
+  // call, so a disabled action can never be triggered regardless of path.
   window.handleRowMenuAction = function (action, rowId) {
     var row = ROWS.filter(function (r) { return r.id === rowId; })[0];
-    closeRowMenu();
+    var trigger = rowMenuTriggerEl; // capture before closeRowMenu() nulls it — the dialogs below use
+    closeRowMenu();                 // it as the "return focus here on cancel" target, not the menu item itself
     if (!row) return;
+    var avail = getRowActionAvailability(row);
     if (action === 'refresh') {
-      showToast(row.name + ' starts refreshing.');
-    } else if (action === 'activity') {
-      openActivityLog(row.name);
-    } else if (action === 'archive') {
-      openRowActionDialog('archive', row);
-    } else if (action === 'unarchive') {
-      openRowActionDialog('unarchive', row);
-    } else if (action === 'delete') {
-      openRowActionDialog('delete', row);
-    } else if (action === 'retrain') {
-      openRowActionDialog('retrain', row);
-    } else if (action === 'editSchedule') {
+      if (!avail.refreshNow.enabled) return;
+      startRefreshFlow(row);
+    } else if (action === 'schedule') {
+      if (!avail.scheduleRefresh.enabled) return;
       openEditRefreshSchedule(row.id);
+    } else if (action === 'retrain') {
+      if (!avail.retrain.enabled) return;
+      openRetrainDialog(row, trigger);
+    } else if (action === 'activity') {
+      openActivityLog(row.id);
+    } else if (action === 'archive') {
+      if (!avail.archive || !avail.archive.enabled) return;
+      openArchiveFlow(row, trigger);
+    } else if (action === 'unarchive') {
+      if (!avail.unarchive || !avail.unarchive.enabled) return;
+      openUnarchiveFlow(row, trigger);
+    } else if (action === 'delete') {
+      if (!avail.del.enabled) return;
+      openDeleteFlow(row, trigger);
     }
   };
 
@@ -2041,15 +2349,20 @@ tr:hover .row-actions, tr:focus-within .row-actions { opacity:1; }
     if (panel.classList.contains('open') && !panel.contains(e.target)) closeRowMenu();
   });
 
-  // ---- Toast ----
+  // ---- Toast — 3 DS Main variants: 'info' (default, azure/static), 'spinner' (azure/animated,
+  // in-progress refresh + retraining), 'success' (green, completion). One shared toast slot, so a
+  // second showToast() call (e.g. the in-progress -> success handoff) just replaces the icon/copy/
+  // tint in place rather than stacking a second toast — dismissing it only hides the toast, it
+  // never touches whatever operation triggered it. ----
   var toastTimer = null;
-  window.showToast = function (message, icon) {
+  window.showToast = function (message, variant) {
+    variant = variant || 'info';
     var toast = document.getElementById('refreshToast');
     document.getElementById('refreshToastBody').textContent = message;
-    var infoIcon = document.getElementById('refreshToastIcon');
-    var spinnerIcon = document.getElementById('refreshToastSpinner');
-    if (infoIcon) infoIcon.hidden = (icon === 'spinner');
-    if (spinnerIcon) spinnerIcon.hidden = (icon !== 'spinner');
+    document.getElementById('refreshToastIcon').hidden = variant !== 'info';
+    document.getElementById('refreshToastSpinner').hidden = variant !== 'spinner';
+    document.getElementById('refreshToastSuccessIcon').hidden = variant !== 'success';
+    toast.classList.toggle('pred-toast-success', variant === 'success');
     toast.hidden = false;
     if (toastTimer) clearTimeout(toastTimer);
     toastTimer = setTimeout(hideToast, 4000);
@@ -2059,11 +2372,15 @@ tr:hover .row-actions, tr:focus-within .row-actions { opacity:1; }
     if (toastTimer) { clearTimeout(toastTimer); toastTimer = null; }
   };
 
-  // ---- Activity log dialog ----
-  window.openActivityLog = function (predictionName) {
-    document.getElementById('activityLogSubtitle').textContent = 'Prediction name: ' + predictionName;
-    document.getElementById('activityLogTbody').innerHTML = ACTIVITY_ROWS.map(function (a) {
-      return '<tr><td>' + a.time + '</td><td>' + a.by + '</td><td>' + a.account + '</td><td>' + a.activity + '</td></tr>';
+  // ---- Activity log dialog — looked up by the prediction's stable ID, never its display name,
+  // from the per-row log seeded/appended in ACTIVITY_LOG_BY_ROW_ID (see near ROWS above). ----
+  window.openActivityLog = function (rowId) {
+    var row = ROWS.filter(function (r) { return r.id === rowId; })[0];
+    if (!row) return;
+    document.getElementById('activityLogSubtitle').textContent = 'Prediction name: ' + row.name;
+    var log = ACTIVITY_LOG_BY_ROW_ID[rowId] || [];
+    document.getElementById('activityLogTbody').innerHTML = log.map(function (a) {
+      return '<tr><td>' + formatDateTime(a.at) + '</td><td>' + escapeHtml(a.by) + '</td><td>' + escapeHtml(a.account) + '</td><td>' + escapeHtml(a.activity) + '</td></tr>';
     }).join('');
     document.getElementById('activityLogBackdrop').hidden = false;
   };
@@ -2071,44 +2388,263 @@ tr:hover .row-actions, tr:focus-within .row-actions { opacity:1; }
     document.getElementById('activityLogBackdrop').hidden = true;
   };
 
-  // ---- Delete / Archive / Unarchive confirmation dialog (shared markup, parameterized by kind) ----
-  // Per spec none of the three flows has a confirmed post-action behavior beyond the dialog itself:
-  // the primary button only closes the dialog — no row mutation, no toast.
-  var ROW_ACTION_CONTENT = {
-    delete: {
-      title: function (name) { return 'Delete ' + name + '?'; },
-      body: function (name) { return 'Permanently deletes ' + name + ' and its associated data. This can\'t be undone.'; },
-      confirmLabel: 'Delete'
-    },
-    archive: {
-      title: function (name) { return 'Archive ' + name + '?'; },
-      body: function () { return 'Archiving this prediction will stop all scheduled inference runs. You can unarchive it later and set up a new schedule if needed.'; },
-      confirmLabel: 'Archive'
-    },
-    unarchive: {
-      title: function (name) { return 'Unarchive ' + name + '?'; },
-      body: function () { return 'Unarchiving this prediction will resume it. You can set up a new inference schedule afterward.'; },
-      confirmLabel: 'Unarchive'
-    },
-    retrain: {
-      title: function (name) { return 'Retrain ' + name + '?'; },
-      body: function () { return 'Retraining starts a new training run using the latest available data. It takes 1\u20132 hours, and you\'ll get an email when the retrained model is ready.'; },
-      confirmLabel: 'Retrain'
-    }
-  };
+  // ---- Delete / Archive / Unarchive / Retrain confirmation dialog (shared markup, parameterized
+  // by kind, Figma node 422:49047 for the Retrain variant). Delete/Archive/Unarchive keep their
+  // original scope: the primary button only closes the dialog, no row mutation or toast. Retrain is
+  // the one kind with a real confirmed action — its confirm button is wired below to actually start
+  // retraining (see startRetrainFlow) rather than just closing. body() may return a string (single
+  // paragraph) or an array of strings (one <p> per line, escaped) for kinds like Retrain that need
+  // two separate sentences. ----
+  var rowActionDialogTriggerEl = null;
+  var rowActionFocusTrapHandler = null;
+  var rowActionSubmitInFlight = false;
 
-  window.openRowActionDialog = function (kind, row) {
-    var content = ROW_ACTION_CONTENT[kind];
-    if (!content) return;
-    // textContent (not innerHTML) so the interpolated row name can never break out of markup.
-    document.getElementById('rowActionTitle').textContent = content.title(row.name);
-    document.getElementById('rowActionBody').textContent = content.body(row.name);
-    document.getElementById('rowActionConfirmBtn').textContent = content.confirmLabel;
+  function rowActionDialogFocusable() {
+    var dialogEl = document.getElementById('rowActionDialog');
+    if (!dialogEl) return [];
+    return Array.prototype.slice.call(dialogEl.querySelectorAll('button, [href], input, select, textarea, [tabindex]'))
+      .filter(function (el) { return !el.disabled && el.offsetParent !== null; });
+  }
+
+  function hideRowActionError() {
+    var el = document.getElementById('rowActionErrorText');
+    if (el) el.hidden = true;
+  }
+  function showRowActionError(message) {
+    document.getElementById('rowActionErrorMessage').textContent = message;
+    document.getElementById('rowActionErrorText').hidden = false;
+  }
+
+  // This prototype has no real backend, so "the operation failed" needs a deterministic,
+  // discoverable trigger rather than random flakiness — same convention as the Save flow's
+  // "Creating prediction" stage: a prediction name containing "fail" (case-insensitive) makes
+  // Delete/Archive/Unarchive/Retrain simulate a failed attempt instead of succeeding.
+  function nameTriggersDemoFailure(name) {
+    return name.toLowerCase().indexOf('fail') !== -1;
+  }
+
+  // General-purpose shell for every Delete/Archive/Unarchive/Retrain dialog (plain confirms and
+  // the segment-dependency variants alike) — one place owns the DS Main dialog shell: opening,
+  // focus-into/trap/return, Escape, backdrop click, and the confirm button's submit-guard +
+  // inline-error handling. cfg: { title, bodyHtml, wide, cancelLabel, primaryLabel,
+  // primaryDestructive, onPrimary, triggerEl }. onPrimary is optional and may return true (closes
+  // the dialog) or a string (keeps it open and shows that string as an inline error) — omit
+  // primaryLabel for a view-only dialog (Close button only, e.g. the delete blocker).
+  function renderRowActionDialog(cfg) {
+    hideRowActionError();
+    rowActionSubmitInFlight = false;
+    document.getElementById('rowActionTitle').textContent = cfg.title;
+    document.getElementById('rowActionBody').innerHTML = cfg.bodyHtml;
+    document.getElementById('rowActionDialog').classList.toggle('pred-confirm-dialog-wide', !!cfg.wide);
+
+    var cancelBtn = document.getElementById('rowActionCancelBtn');
+    cancelBtn.textContent = cfg.cancelLabel || 'Cancel';
+    cancelBtn.onclick = function () { closeRowActionDialog(); };
+
+    var confirmBtn = document.getElementById('rowActionConfirmBtn');
+    confirmBtn.hidden = !cfg.primaryLabel;
+    if (cfg.primaryLabel) {
+      confirmBtn.textContent = cfg.primaryLabel;
+      confirmBtn.disabled = false;
+      confirmBtn.classList.toggle('pred-confirm-btn-destructive', !!cfg.primaryDestructive);
+      confirmBtn.classList.toggle('pred-confirm-btn-primary', !cfg.primaryDestructive);
+      confirmBtn.onclick = function () {
+        if (rowActionSubmitInFlight) return; // duplicate-submission guard
+        rowActionSubmitInFlight = true;
+        confirmBtn.disabled = true;
+        hideRowActionError();
+        var result = cfg.onPrimary ? cfg.onPrimary() : true;
+        rowActionSubmitInFlight = false;
+        if (result === true) {
+          closeRowActionDialog();
+        } else {
+          // Failed: stay open, re-enable, surface the error — never navigate or change status as
+          // though it succeeded.
+          confirmBtn.disabled = false;
+          showRowActionError(typeof result === 'string' ? result : 'Something went wrong. Please try again.');
+        }
+      };
+    }
+
+    // Keyboard focus moves into the dialog on open (the close-X button — first in DOM order), is
+    // trapped inside it via Tab/Shift+Tab while it's open (the modal backdrop already blocks
+    // pointer interaction with the page behind it), and returns to whatever triggered the dialog
+    // on close — Cancel, the close-X, Escape, or a backdrop click all funnel through
+    // closeRowActionDialog so every dismiss path restores focus the same way.
+    rowActionDialogTriggerEl = cfg.triggerEl || document.activeElement;
     document.getElementById('rowActionBackdrop').hidden = false;
-  };
+    var closeBtn = document.getElementById('rowActionCloseBtn');
+    if (closeBtn) closeBtn.focus();
+
+    rowActionFocusTrapHandler = function (e) {
+      if (e.key === 'Escape') { closeRowActionDialog(); return; }
+      if (e.key !== 'Tab') return;
+      var focusable = rowActionDialogFocusable();
+      if (!focusable.length) return;
+      var first = focusable[0], last = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    };
+    document.addEventListener('keydown', rowActionFocusTrapHandler);
+  }
   window.closeRowActionDialog = function () {
     document.getElementById('rowActionBackdrop').hidden = true;
+    document.getElementById('rowActionDialog').classList.remove('pred-confirm-dialog-wide');
+    hideRowActionError();
+    if (rowActionFocusTrapHandler) { document.removeEventListener('keydown', rowActionFocusTrapHandler); rowActionFocusTrapHandler = null; }
+    if (rowActionDialogTriggerEl && typeof rowActionDialogTriggerEl.focus === 'function') rowActionDialogTriggerEl.focus();
+    rowActionDialogTriggerEl = null;
   };
+
+  // ---- Retrain — Figma node 422:49047. Confirming starts training immediately (via
+  // startRetrainFlow); cancelling makes no status or navigation change at all. ----
+  function openRetrainDialog(row, triggerEl) {
+    renderRowActionDialog({
+      title: 'Retrain ' + row.name + '?',
+      bodyHtml: '<p>Retraining starts a new training job using the latest available data.</p>'
+        + '<p style="margin-top:12px;">It takes 1–2 hours to retrain, and you will receive an email notification when the retraining is complete.</p>',
+      primaryLabel: 'Retrain',
+      triggerEl: triggerEl,
+      onPrimary: function () {
+        if (nameTriggersDemoFailure(row.name)) return "We couldn't start retraining. Please try again.";
+        startRetrainFlow(row);
+        return true;
+      }
+    });
+  }
+
+  // ---- Segment-dependency helpers shared by Delete and Archive ----
+  function segmentListTableHtml(segments) {
+    return '<table class="segment-list-table"><thead><tr><th>Segment name</th><th>Last updated</th></tr></thead><tbody>'
+      + segments.map(function (seg) {
+          return '<tr><td><button type="button" class="segment-link" data-segment-id="' + escapeHtml(seg.id) + '">' + escapeHtml(seg.name) + '</button></td>'
+            + '<td>' + formatDateTime(seg.lastUpdatedAt) + '</td></tr>';
+        }).join('')
+      + '</tbody></table>';
+  }
+
+  // ---- Delete — Figma "Delete Blocker dialogue - Segment list" (886:51588) when the prediction is
+  // still used by a segment, the plain DS Main delete-confirmation otherwise. Dependency status is
+  // re-fetched from getSegmentsUsingPrediction on every open/retry — never cached — so removing the
+  // last dependency and reopening Delete always reflects the current state. ----
+  function deletePredictionRow(row) {
+    var idx = ROWS.indexOf(row);
+    if (idx !== -1) ROWS.splice(idx, 1);
+    delete ACTIVITY_LOG_BY_ROW_ID[row.id];
+    renderRows(ROWS);
+    cancelCreatePrediction();
+    showToast(row.name + ' deleted successfully', 'success');
+  }
+
+  function openDeleteFlow(row, triggerEl) {
+    var segments = getSegmentsUsingPrediction(row.id);
+    if (segments.length) {
+      renderDeleteBlockedDialog(row, triggerEl);
+      return;
+    }
+    renderRowActionDialog({
+      title: 'Delete ' + row.name + '?',
+      bodyHtml: '<p>This action will permanently delete ' + escapeHtml(row.name) + ' and its associated data. This action cannot be undone.</p>',
+      primaryLabel: 'Delete',
+      primaryDestructive: true,
+      triggerEl: triggerEl,
+      onPrimary: function () {
+        if (nameTriggersDemoFailure(row.name)) return "We couldn't delete this prediction. Please try again.";
+        deletePredictionRow(row);
+        return true;
+      }
+    });
+  }
+
+  function renderDeleteBlockedDialog(row, triggerEl) {
+    var segments = getSegmentsUsingPrediction(row.id); // always re-checked, never stale
+    if (!segments.length) { openDeleteFlow(row, triggerEl); return; } // dependencies cleared — fall through to the normal confirm dialog
+    renderRowActionDialog({
+      title: 'This prediction is used in segments',
+      wide: true,
+      bodyHtml: '<p>Remove the prediction from these segments before you can permanently delete it. Deleting is blocked while it is in use.</p>'
+        + '<div style="margin-top:16px;">' + segmentListTableHtml(segments) + '</div>',
+      cancelLabel: 'Close',
+      triggerEl: triggerEl
+      // No primaryLabel/destructive action here — every segment row is already its own clickable
+      // link (wired below), so there is nothing left for a separate confirm button to do.
+    });
+    var dialogEl = document.getElementById('rowActionDialog');
+    Array.prototype.forEach.call(dialogEl.querySelectorAll('.segment-link'), function (btn) {
+      btn.onclick = function () {
+        var segId = btn.getAttribute('data-segment-id');
+        var seg = segments.filter(function (s) { return s.id === segId; })[0];
+        if (!seg) return;
+        // Simulates the user visiting the segment and removing the prediction filter there.
+        removeSegmentDependency(segId, row.id);
+        showToast('Removed ' + row.name + ' from ' + seg.name + '.', 'success');
+        renderDeleteBlockedDialog(row, triggerEl); // recheck + repaint — falls through once empty
+      };
+    });
+  }
+
+  // ---- Archive — available from Ready only. Unlike Delete, a segment dependency never blocks
+  // archiving; it only adds a stronger warning + the segment list, since those segments keep the
+  // prediction filter and their audiences freeze at the last refreshed result (archiving must NOT
+  // silently remove the prediction from them, so segment links here are informational only — they
+  // never call removeSegmentDependency). ----
+  function openArchiveFlow(row, triggerEl) {
+    var segments = getSegmentsUsingPrediction(row.id);
+    var bodyHtml = '<p>Archiving this prediction will stop its scheduled refreshes.</p>';
+    if (segments.length) {
+      bodyHtml += '<p style="margin-top:12px;">The following segments still use this prediction. They will keep the prediction filter, and their audiences will stay frozen at the last available refreshed data.</p>'
+        + '<div style="margin-top:16px;">' + segmentListTableHtml(segments) + '</div>';
+    } else {
+      bodyHtml += '<p style="margin-top:12px;">You can unarchive it later and set up a new schedule if needed.</p>';
+    }
+    renderRowActionDialog({
+      title: 'Archive ' + row.name + '?',
+      wide: segments.length > 0,
+      bodyHtml: bodyHtml,
+      primaryLabel: 'Archive',
+      triggerEl: triggerEl,
+      onPrimary: function () {
+        if (nameTriggersDemoFailure(row.name)) return "We couldn't archive this prediction. Please try again.";
+        row.status = 'archived';
+        renderRows(ROWS);
+        if (currentDetailRowId === row.id) renderPredictionDetail(row);
+        logActivity(row.id, 'Archived');
+        showToast(row.name + ' archived successfully', 'success');
+        return true;
+      }
+    });
+    if (segments.length) {
+      var dialogEl = document.getElementById('rowActionDialog');
+      Array.prototype.forEach.call(dialogEl.querySelectorAll('.segment-link'), function (btn) {
+        btn.onclick = function () {
+          var segId = btn.getAttribute('data-segment-id');
+          var seg = segments.filter(function (s) { return s.id === segId; })[0];
+          if (seg) showToast('Opening ' + seg.name + '…', 'info');
+        };
+      });
+    }
+  }
+
+  // ---- Unarchive — available from Archived only. Does not touch refreshSchedule (preserved as-is)
+  // and never starts a refresh on its own; the user re-enables/reviews scheduling explicitly via
+  // Schedule refresh afterward. ----
+  function openUnarchiveFlow(row, triggerEl) {
+    renderRowActionDialog({
+      title: 'Unarchive ' + row.name + '?',
+      bodyHtml: "<p>Unarchiving this prediction will resume it. It won't refresh automatically — review or re-enable scheduling from Schedule refresh afterward.</p>",
+      primaryLabel: 'Unarchive',
+      triggerEl: triggerEl,
+      onPrimary: function () {
+        if (nameTriggersDemoFailure(row.name)) return "We couldn't unarchive this prediction. Please try again.";
+        row.status = 'ready';
+        renderRows(ROWS);
+        if (currentDetailRowId === row.id) renderPredictionDetail(row);
+        logActivity(row.id, 'Unarchived');
+        showToast(row.name + ' unarchived successfully', 'success');
+        return true;
+      }
+    });
+  }
 
   // ==================== Create Prediction wizard — Step 1 (Setup) ====================
   var WIZ_EVENT_OPTIONS = ['product_purchased', 'product_added_to_wishlist', 'checkout_completed', 'category_viewed'];
@@ -2122,6 +2658,7 @@ tr:hover .row-actions, tr:focus-within .row-actions { opacity:1; }
   // 7 is the minimum supported prediction window; 90 the maximum.
   var WIZ_PRED_WINDOW_OPTIONS = [];
   for (var wizPredWinN = 7; wizPredWinN <= 90; wizPredWinN++) WIZ_PRED_WINDOW_OPTIONS.push(String(wizPredWinN));
+  var WIZ_WEEKDAY_OPTIONS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
   var WIZ_OPTIONS_BY_KIND = {
     event: WIZ_EVENT_OPTIONS,
@@ -2130,7 +2667,8 @@ tr:hover .row-actions, tr:focus-within .row-actions { opacity:1; }
     occcomp: WIZ_OCC_COMPARATORS,
     occcount: WIZ_OCC_COUNT_OPTIONS,
     predwindow: WIZ_PRED_WINDOW_OPTIONS,
-    recurdays: WIZ_RECUR_DAYS_OPTIONS
+    recurdays: WIZ_RECUR_DAYS_OPTIONS,
+    weekday: WIZ_WEEKDAY_OPTIONS
   };
   var TAG_OPERATORS = { 'is one of': true, 'is not one of': true };
   var wizPredictionWindow = 7;
@@ -2203,6 +2741,7 @@ tr:hover .row-actions, tr:focus-within .row-actions { opacity:1; }
       return;
     }
     if (kind === 'recurdays') { wizStep2.everyNDays = parseInt(value, 10); renderWizStep2(); return; }
+    if (kind === 'weekday') { wizStep2.weekday = value; renderWizStep2(); return; }
     if (kind === 'event') {
       var ev = findWizEvent(id);
       if (ev) { ev.selectedEvent = value; renderEvents(); }
@@ -2427,7 +2966,7 @@ tr:hover .row-actions, tr:focus-within .row-actions { opacity:1; }
   // Tracks which flow opened the wizard: null = fresh "Create prediction", a row id = "Edit" on
   // that row. Read by Step 3's Save handler to decide insert-new-row vs. update-in-place.
   var wizEditingRowId = null;
-  // Version B only: true whenever the wizard is showing the single-page Create flow (Setup +
+  // True whenever the wizard is showing the single-page Create flow (Setup +
   // Schedule sections both visible, no stepper) instead of the classic multi-step Setup → Schedule
   // → Review flow the edit entry points still use. This flow shows no inline required-field hints
   // (no red borders/error text) — the Save button's disabled state is the only validity signal.
@@ -2471,6 +3010,12 @@ tr:hover .row-actions, tr:focus-within .row-actions { opacity:1; }
     if (btn) btn.disabled = false;
   }
 
+  // goToWizStep/handleWizardNext/handleWizStep2Next/the Step 3 review-summary renderers below are
+  // the classic multi-step Setup -> Schedule -> Review flow. Both wizard entry points (Create and
+  // Edit) now always use the single-page layout (see resetWizardForCreate/resetWizardForEdit +
+  // renderOnePageLayout), so wizOnePageMode is never false and this multi-step path is currently
+  // unreachable. Left in place rather than deleted — the underlying #wizStep1/#wizStep2/#wizStep3
+  // markup and state are still shared with the single-page flow either way.
   function goToWizStep(step) {
     wizCurrentStep = step;
     var s1 = document.getElementById('wizStep1');
@@ -2523,17 +3068,18 @@ tr:hover .row-actions, tr:focus-within .row-actions { opacity:1; }
   };
 
   // ==================== Create Prediction wizard — Step 2 (Schedule) ====================
-  var wizStep2 = { inference: 'yes', scheduleType: 'onetime', runDate: null, frequency: null, everyNDays: 7, startDate: null, endDate: null, locked: false };
+  var wizStep2 = { enabled: 'yes', scheduleType: 'onetime', runDate: null, frequency: null, everyNDays: 7, weekday: 'Monday', startDate: null, endDate: null, locked: false };
   var WIZ_MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
   var WIZ_MONTH_ABBR = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
   function resetWizStep2State(locked) {
     wizStep2 = {
-      inference: locked ? 'no' : 'yes',
+      enabled: locked ? 'no' : 'yes',
       scheduleType: 'onetime',
       runDate: null,
       frequency: null,
       everyNDays: 7,
+      weekday: 'Monday',
       startDate: null,
       endDate: null,
       locked: !!locked
@@ -2547,16 +3093,19 @@ tr:hover .row-actions, tr:focus-within .row-actions { opacity:1; }
   // Edit entry points reuse the create wizard's Step 2 state — this seeds it from the row's
   // current refresh-schedule mock data instead of resetting to the create-flow defaults, so the
   // edit flow reflects (and lets the user adjust) what's actually configured on the prediction.
+  // A saved schedule only ever carries the fields for its own state (see snapshotWizRefreshSchedule
+  // below), so missing fields here just fall back to sane create-flow defaults.
   function populateWizStep2FromRow(row) {
     var locked = row.status === 'archived';
     var sched = row.refreshSchedule;
     if (!sched) { resetWizStep2State(locked); return; }
     wizStep2 = {
-      inference: locked ? 'no' : sched.inference,
-      scheduleType: sched.scheduleType,
+      enabled: locked ? 'no' : sched.enabled,
+      scheduleType: sched.scheduleType || 'onetime',
       runDate: sched.runDate ? { y: sched.runDate.y, m: sched.runDate.m, d: sched.runDate.d } : null,
       frequency: sched.frequency,
       everyNDays: sched.everyNDays || 7,
+      weekday: sched.weekday || 'Monday',
       startDate: sched.startDate ? { y: sched.startDate.y, m: sched.startDate.m, d: sched.startDate.d } : null,
       endDate: sched.endDate ? { y: sched.endDate.y, m: sched.endDate.m, d: sched.endDate.d } : null,
       locked: locked
@@ -2600,16 +3149,13 @@ tr:hover .row-actions, tr:focus-within .row-actions { opacity:1; }
   }
 
   function renderWizStep2() {
-    var group = document.getElementById('wizScheduleInferenceGroup');
-    if (group) {
-      var yesRadio = group.querySelector('.wiz-radio[data-value="yes"]');
-      var noRadio = group.querySelector('.wiz-radio[data-value="no"]');
-      if (yesRadio) yesRadio.classList.toggle('checked', wizStep2.inference === 'yes');
-      if (noRadio) noRadio.classList.toggle('checked', wizStep2.inference === 'no');
-      group.classList.toggle('wiz-radio-group-locked', wizStep2.locked);
+    var checkboxEl = document.getElementById('wizScheduleEnabledCheckbox');
+    if (checkboxEl) {
+      checkboxEl.checked = wizStep2.enabled === 'yes';
+      checkboxEl.disabled = wizStep2.locked;
     }
 
-    var showScheduleType = wizStep2.inference === 'yes';
+    var showScheduleType = wizStep2.enabled === 'yes';
     var typeSection = document.getElementById('wizScheduleTypeSection');
     if (typeSection) typeSection.hidden = !showScheduleType;
     if (!showScheduleType) {
@@ -2633,34 +3179,40 @@ tr:hover .row-actions, tr:focus-within .row-actions { opacity:1; }
         valueEl.textContent = formatWizRunDate(wizStep2.runDate);
         valueEl.classList.remove('placeholder');
       } else {
-        valueEl.textContent = 'Starts on...';
+        valueEl.textContent = 'Runs on...';
         valueEl.classList.add('placeholder');
       }
     }
 
-    ['daily', 'everyNDays', 'monthly'].forEach(function (val) {
+    ['daily', 'weekly', 'everyNDays', 'monthly'].forEach(function (val) {
       var r = document.querySelector('#wizRecurringPanel .wiz-radio[data-value="' + val + '"]');
       if (r) r.classList.toggle('checked', wizStep2.frequency === val);
     });
     var everyValEl = document.getElementById('wizRecurDaysValue');
     if (everyValEl) everyValEl.textContent = String(wizStep2.everyNDays);
+    var weekdayValEl = document.getElementById('wizWeekdayValue');
+    if (weekdayValEl) weekdayValEl.textContent = wizStep2.weekday;
 
     var startValueEl = document.getElementById('wizStartDateValue');
     if (startValueEl) {
       if (wizStep2.startDate) { startValueEl.textContent = formatWizRunDate(wizStep2.startDate); startValueEl.classList.remove('placeholder'); }
-      else { startValueEl.textContent = 'Starts on...'; startValueEl.classList.add('placeholder'); }
+      else { startValueEl.textContent = 'Starts on'; startValueEl.classList.add('placeholder'); }
     }
     var endValueEl = document.getElementById('wizEndDateValue');
     if (endValueEl) {
       if (wizStep2.endDate) { endValueEl.textContent = formatWizRunDate(wizStep2.endDate); endValueEl.classList.remove('placeholder'); }
-      else { endValueEl.textContent = 'Ends on...'; endValueEl.classList.add('placeholder'); }
+      else { endValueEl.textContent = 'Ends on'; endValueEl.classList.add('placeholder'); }
     }
     if (wizOnePageMode) updateOnePageSaveButtonUI();
   }
 
-  window.selectWizScheduleInference = function (val) {
-    if (wizStep2.locked) return;
-    wizStep2.inference = val;
+  // Checked = create/keep an automatic refresh schedule; unchecked = none. Toggling clears any
+  // Schedule-section validation errors either way — re-checking restores whatever scheduleType/
+  // dates were already set (still valid) rather than silently resetting them, and only falls back
+  // to the One-time default when nothing valid was set yet (wizStep2's initial/reset state).
+  window.handleWizScheduleEnabledChange = function (inputEl) {
+    if (wizStep2.locked) { inputEl.checked = wizStep2.enabled === 'yes'; return; }
+    wizStep2.enabled = inputEl.checked ? 'yes' : 'no';
     setWizRunDateError(false);
     setWizFrequencyError(false);
     setWizStartDateError(false);
@@ -2684,7 +3236,7 @@ tr:hover .row-actions, tr:focus-within .row-actions { opacity:1; }
   };
 
   function handleWizStep2Next() {
-    if (wizStep2.inference === 'no') {
+    if (wizStep2.enabled === 'no') {
       setWizRunDateError(false);
       setWizFrequencyError(false);
       setWizStartDateError(false);
@@ -2700,14 +3252,14 @@ tr:hover .row-actions, tr:focus-within .row-actions { opacity:1; }
       if (!wizStep2.frequency) { setWizFrequencyError(true); valid = false; } else { setWizFrequencyError(false); }
       if (!wizStep2.startDate) { setWizStartDateError(true); valid = false; } else { setWizStartDateError(false); }
       if (!wizStep2.endDate) {
-        setWizEndDateError(true, 'Required');
+        setWizEndDateError(true, 'End date is required.');
         valid = false;
       } else if (wizStep2.startDate) {
         var sd = wizStep2.startDate, ed = wizStep2.endDate;
         var startMs = new Date(sd.y, sd.m, sd.d).getTime();
         var endMs = new Date(ed.y, ed.m, ed.d).getTime();
-        if (endMs <= startMs) {
-          setWizEndDateError(true, 'Must be later than the start date');
+        if (endMs < startMs) {
+          setWizEndDateError(true, 'End date cannot be earlier than the start date.');
           valid = false;
         } else {
           setWizEndDateError(false);
@@ -2787,7 +3339,7 @@ tr:hover .row-actions, tr:focus-within .row-actions { opacity:1; }
 
   function renderWizStep3ScheduleSummary() {
     var html;
-    if (wizStep2.inference === 'no') {
+    if (wizStep2.enabled === 'no') {
       html = wizSummaryRow('Automatic refreshes', 'No');
     } else if (wizStep2.scheduleType === 'onetime') {
       var dateStr = wizStep2.runDate ? formatWizRunDate(wizStep2.runDate) : 'Not set';
@@ -2795,6 +3347,7 @@ tr:hover .row-actions, tr:focus-within .row-actions { opacity:1; }
     } else {
       var freqLabel = 'Not set';
       if (wizStep2.frequency === 'daily') freqLabel = 'Daily';
+      else if (wizStep2.frequency === 'weekly') freqLabel = 'Weekly on ' + wizStep2.weekday;
       else if (wizStep2.frequency === 'monthly') freqLabel = 'Monthly';
       else if (wizStep2.frequency === 'everyNDays') freqLabel = 'Every ' + wizStep2.everyNDays + ' days';
       var startStr = wizStep2.startDate ? formatWizRunDate(wizStep2.startDate) : 'Not set';
@@ -2812,7 +3365,9 @@ tr:hover .row-actions, tr:focus-within .row-actions { opacity:1; }
     renderWizStep3ScheduleSummary();
   }
 
-  // ---- Save: inline loading state on the same button, then insert/update the row + toast ----
+  // ---- Save: inline button-spinner for edits (unchanged — editing never (re)starts training), a
+  // full-page "Creating prediction" validation/creation stage for a fresh create (Figma node
+  // 858:41844) — training only starts once that stage succeeds. ----
   function handleWizStep3Save() {
     var saveBtn = document.getElementById('wizNextBtn');
     if (!saveBtn || saveBtn.disabled) return;
@@ -2824,18 +3379,109 @@ tr:hover .row-actions, tr:focus-within .row-actions { opacity:1; }
     if (infoIconEl) infoIconEl.hidden = true; // one-page mode only shows this when enabled+idle
     if (spinnerEl) spinnerEl.hidden = false;
     hideSaveInfoTooltip();
-    setTimeout(completeWizStep3Save, 1200);
+    hideWizCreatingError();
+    if (wizEditingRowId) {
+      setTimeout(completeWizStep3Save, 1200);
+      return;
+    }
+    startWizCreatingStage();
+  }
+
+  var wizCreatingProgressTimer = null;
+  var wizCreatingDoneTimer = null;
+
+  function clearWizCreatingTimers() {
+    if (wizCreatingProgressTimer) { clearInterval(wizCreatingProgressTimer); wizCreatingProgressTimer = null; }
+    if (wizCreatingDoneTimer) { clearTimeout(wizCreatingDoneTimer); wizCreatingDoneTimer = null; }
+  }
+
+  function hideWizCreatingError() {
+    var hint = document.getElementById('wizCreatingErrorHint');
+    if (hint) hint.hidden = true;
+  }
+
+  function resetWizSaveButtonUI() {
+    var saveBtn = document.getElementById('wizNextBtn');
+    var spinnerEl = document.getElementById('wizSaveSpinner');
+    var infoIconEl = document.getElementById('wizNextBtnInfoIcon');
+    if (spinnerEl) spinnerEl.hidden = true;
+    if (saveBtn) saveBtn.disabled = false;
+    // This only ever runs from the create-only "Creating prediction" failure path, so the info
+    // icon (create-only, see renderOnePageLayout) always comes back when it does.
+    if (infoIconEl) infoIconEl.hidden = false;
+  }
+
+  // This prototype has no real backend to validate against, so the failure branch below needs a
+  // deterministic, discoverable trigger rather than a random flaky chance: naming the prediction
+  // with "fail" anywhere in it (case-insensitive) exercises the error state end to end. Every other
+  // name always succeeds.
+  function wizCreatingShouldFail() {
+    var input = document.getElementById('wizPredictionNameInput');
+    var name = input ? input.value.trim().toLowerCase() : '';
+    return name.indexOf('fail') !== -1;
+  }
+
+  // Controlled demo progress: ticks up on an interval derived from elapsed-time-over-total (never
+  // decreases, never reaches 100% before the stage actually finishes), runs ~30-60s, then either
+  // continues into the existing training kickoff (completeWizStep3Save) or — for the demo failure
+  // trigger — surfaces the error hint and hands control back to the user. All timers are cleared up
+  // front on every call and again as soon as the stage resolves, so a second Save click (once
+  // re-enabled) or navigating away never leaves a stale interval/timeout running behind it.
+  function startWizCreatingStage() {
+    var overlay = document.getElementById('wizCreatingOverlay');
+    var pctEl = document.getElementById('wizCreatingPct');
+    if (!overlay || !pctEl) { completeWizStep3Save(); return; }
+    clearWizCreatingTimers();
+    var shouldFail = wizCreatingShouldFail();
+    var progress = 0;
+    pctEl.textContent = '0%';
+    overlay.hidden = false;
+    var totalMs = 30000 + Math.random() * 30000;
+    var startedAt = Date.now();
+    wizCreatingProgressTimer = setInterval(function () {
+      var elapsed = Date.now() - startedAt;
+      var pct = Math.min(96, Math.floor((elapsed / totalMs) * 100));
+      if (pct > progress) { progress = pct; pctEl.textContent = progress + '%'; }
+    }, 300);
+    wizCreatingDoneTimer = setTimeout(function () {
+      clearWizCreatingTimers();
+      if (shouldFail) {
+        overlay.hidden = true;
+        resetWizSaveButtonUI();
+        var hint = document.getElementById('wizCreatingErrorHint');
+        if (hint) hint.hidden = false;
+        return;
+      }
+      pctEl.textContent = '100%';
+      setTimeout(function () {
+        overlay.hidden = true;
+        completeWizStep3Save();
+      }, 250);
+    }, totalMs);
   }
 
   // Snapshots wizStep2's live schedule fields into the plain object shape stored on a row (and
   // read back by populateWizStep2FromRow / the detail page's schedule summary).
+  // Snapshots exactly the fields that apply to the current state (disabled / one-time / recurring)
+  // — never the other schedule type's stale values — so the saved row's refreshSchedule clearly
+  // represents one of those three states rather than a superset with unused leftovers.
   function snapshotWizRefreshSchedule() {
+    if (wizStep2.enabled !== 'yes') {
+      return { enabled: 'no', scheduleType: null, runDate: null, frequency: null, everyNDays: null, weekday: null, startDate: null, endDate: null };
+    }
+    if (wizStep2.scheduleType === 'onetime') {
+      return {
+        enabled: 'yes', scheduleType: 'onetime',
+        runDate: wizStep2.runDate ? { y: wizStep2.runDate.y, m: wizStep2.runDate.m, d: wizStep2.runDate.d } : null,
+        frequency: null, everyNDays: null, weekday: null, startDate: null, endDate: null
+      };
+    }
     return {
-      inference: wizStep2.inference,
-      scheduleType: wizStep2.scheduleType,
-      runDate: wizStep2.runDate ? { y: wizStep2.runDate.y, m: wizStep2.runDate.m, d: wizStep2.runDate.d } : null,
+      enabled: 'yes', scheduleType: 'recurring',
+      runDate: null,
       frequency: wizStep2.frequency,
-      everyNDays: wizStep2.everyNDays,
+      everyNDays: wizStep2.frequency === 'everyNDays' ? wizStep2.everyNDays : null,
+      weekday: wizStep2.frequency === 'weekly' ? wizStep2.weekday : null,
       startDate: wizStep2.startDate ? { y: wizStep2.startDate.y, m: wizStep2.startDate.m, d: wizStep2.startDate.d } : null,
       endDate: wizStep2.endDate ? { y: wizStep2.endDate.y, m: wizStep2.endDate.m, d: wizStep2.endDate.d } : null
     };
@@ -2873,7 +3519,7 @@ tr:hover .row-actions, tr:focus-within .row-actions { opacity:1; }
       if (row && currentDetailRowId === row.id) renderPredictionDetail(row);
       showToast(name + ' has been updated.');
     } else {
-      var today = new Date();
+      var now = new Date();
       var newRow = {
         id: 'p' + Date.now(),
         name: name,
@@ -2883,11 +3529,11 @@ tr:hover .row-actions, tr:focus-within .row-actions { opacity:1; }
         predictionWindow: wizPredictionWindow,
         goalEvents: snapshotWizGoalEvents(),
         refreshSchedule: snapshotWizRefreshSchedule(),
-        lastTrain: 'Just now',
-        lastInference: '—',
-        created: 'Just now',
         lastTrainDaysAgo: 0,
-        lastTrainDate: formatWizRunDate({ y: today.getFullYear(), m: today.getMonth(), d: today.getDate() })
+        lastRefreshedDaysAgo: null,
+        lastTrainAt: now,
+        lastRefreshedAt: null,
+        createdAt: now
       };
       ROWS.unshift(newRow);
       renderRows(ROWS);
@@ -2906,17 +3552,17 @@ tr:hover .row-actions, tr:focus-within .row-actions { opacity:1; }
   var wizCalTarget = 'rundate'; // 'rundate' | 'startdate' | 'enddate'
 
   function isWizDateDisabled(y, m, d) {
-    // Contract period ends 2026-08-31 — any date from 2026-09-01 onward is disabled, for every field.
-    if (y > 2026 || (y === 2026 && m >= 8)) return true;
-    if (wizCalTarget === 'startdate') {
+    // Contract period ends 2026-12-31 — any date from 2027-01-01 onward is disabled, for every
+    // field (Start date and End date calendars share this same isWizDateDisabled check).
+    if (y > 2026) return true;
+    if (wizCalTarget === 'rundate' || wizCalTarget === 'startdate') {
       var today = new Date(); today.setHours(0, 0, 0, 0);
-      if (new Date(y, m, d) < today) return true; // start date cannot be in the past
+      if (new Date(y, m, d) < today) return true; // run date / start date cannot be in the past
     }
     if (wizCalTarget === 'enddate' && wizStep2.startDate) {
       var sd = wizStep2.startDate;
-      // Strictly after start date's day — with no time-of-day on either field, "later than start"
-      // and "not the same day" are the same rule, so same-day is disabled here too.
-      if (new Date(y, m, d) <= new Date(sd.y, sd.m, sd.d)) return true;
+      // End date must not be earlier than start date — same day is allowed.
+      if (new Date(y, m, d) < new Date(sd.y, sd.m, sd.d)) return true;
     }
     return false;
   }
@@ -3093,9 +3739,10 @@ tr:hover .row-actions, tr:focus-within .row-actions { opacity:1; }
     if (eventsGroup) eventsGroup.classList.toggle('wiz-readonly', locked);
   }
 
-  // ---- Wizard entry points: plain "Create prediction" (Version B: single-page) vs. row "Edit"
-  // (unchanged classic multi-step Setup → Schedule → Review). Both share the same underlying
-  // #wizStep1/#wizStep2 markup and state — wizOnePageMode just changes how they're presented. ----
+  // ---- Wizard entry points: "Create prediction" and "Edit prediction" both use the single-page
+  // layout (#wizStep1/#wizStep2 shown together, no stepper/Back, one Save button) — wizEditingRowId
+  // is what actually distinguishes them (title, edit-restriction on type/window/goal events, and
+  // whether Save runs the full "Creating prediction" stage or a quick inline save). ----
   function resetWizardForCreate() {
     wizOnePageMode = true;
     wizEditingRowId = null;
@@ -3109,22 +3756,17 @@ tr:hover .row-actions, tr:focus-within .row-actions { opacity:1; }
     resetWizPredictionWindow();
     resetWizEventsState();
     applyWizEditRestriction();
-    renderRecommendationBanner('wiz', null);
+    clearWizCreatingTimers();
+    document.getElementById('wizCreatingOverlay').hidden = true;
+    hideWizCreatingError();
     renderOnePageLayout();
   }
 
+  // targetStep is a legacy hint from the "Edit refresh schedule" entry point (openEditRefreshSchedule
+  // below) — there's no separate Schedule step to jump to anymore, so it just scrolls the single
+  // page down to the Schedule card instead.
   function resetWizardForEdit(row, targetStep) {
-    wizOnePageMode = false;
-    // Restore the chrome the one-page flow hides — the multi-step edit flow needs its stepper,
-    // Back button, and header divider back, and never shows the Save button's info icon.
-    var stepperEl = document.querySelector('.wiz-stepper');
-    if (stepperEl) stepperEl.hidden = false;
-    var backBtn = document.getElementById('wizBackBtn');
-    if (backBtn) backBtn.hidden = false;
-    var dividerEl = document.getElementById('wizHeaderDivider');
-    if (dividerEl) dividerEl.hidden = false;
-    var infoIconEl = document.getElementById('wizNextBtnInfoIcon');
-    if (infoIconEl) infoIconEl.hidden = true;
+    wizOnePageMode = true;
     hideSaveInfoTooltip();
 
     wizEditingRowId = row.id;
@@ -3140,13 +3782,19 @@ tr:hover .row-actions, tr:focus-within .row-actions { opacity:1; }
     if (pwEl) pwEl.textContent = String(wizPredictionWindow);
     seedWizEventsFromRow(row);
     applyWizEditRestriction();
-    renderRecommendationBanner('wiz', row);
-    goToWizStep(targetStep || 1);
+    // No recommendation hint on the Edit page (Details-page-only per the ticket) — goal events,
+    // schedule, etc. still seed normally above; this just skips the banner render.
+    renderOnePageLayout();
+    if (targetStep === 2) {
+      var scheduleCard = document.getElementById('wizStep2');
+      if (scheduleCard) scheduleCard.scrollIntoView({ block: 'start' });
+    }
   }
 
-  // ==================== Version B: single-page Create Prediction ====================
-  // Shows #wizStep1 and #wizStep2 together (no step switching, no stepper) and repurposes the
-  // shared Next/Save button. Editing never runs through here — see resetWizardForEdit above.
+  // ==================== Single-page Create/Edit Prediction ====================
+  // Shows #wizStep1 and #wizStep2 together (no step switching, no stepper, one Save button) for
+  // both Create and Edit — wizEditingRowId (not wizOnePageMode) is what tells the two apart, since
+  // both flows render this same layout.
   function renderOnePageLayout() {
     document.getElementById('wizStep1').hidden = false;
     document.getElementById('wizStep2').hidden = false;
@@ -3164,7 +3812,9 @@ tr:hover .row-actions, tr:focus-within .row-actions { opacity:1; }
     var spinnerEl = document.getElementById('wizSaveSpinner');
     if (labelEl) labelEl.textContent = 'Save';
     if (arrowIcon) arrowIcon.hidden = true; // replaced by the info icon in this flow, per Figma
-    if (infoIcon) infoIcon.hidden = false;
+    // The "training starts" info tooltip only applies to a fresh create — editing never (re)starts
+    // training, so Edit's Save button never shows it.
+    if (infoIcon) infoIcon.hidden = !!wizEditingRowId;
     if (spinnerEl) spinnerEl.hidden = true;
 
     renderWizStep2(); // paints the Schedule section's current values
@@ -3181,14 +3831,14 @@ tr:hover .row-actions, tr:focus-within .row-actions { opacity:1; }
     var hasValidEvent = wizEvents.some(function (e) { return e.selectedEvent; });
     var valid = !!nameVal && hasValidEvent;
 
-    if (wizStep2.inference === 'yes') {
+    if (wizStep2.enabled === 'yes') {
       if (wizStep2.scheduleType === 'onetime') {
         valid = valid && !!wizStep2.runDate;
       } else {
         var scheduleOk = !!wizStep2.frequency && !!wizStep2.startDate && !!wizStep2.endDate;
         if (scheduleOk) {
           var sd = wizStep2.startDate, ed = wizStep2.endDate;
-          scheduleOk = new Date(ed.y, ed.m, ed.d).getTime() > new Date(sd.y, sd.m, sd.d).getTime();
+          scheduleOk = new Date(ed.y, ed.m, ed.d).getTime() >= new Date(sd.y, sd.m, sd.d).getTime();
         }
         valid = valid && scheduleOk;
       }
@@ -3241,7 +3891,8 @@ tr:hover .row-actions, tr:focus-within .row-actions { opacity:1; }
   }
   var saveInfoTooltipAnchor = null;
   window.showSaveInfoTooltip = function (btn) {
-    if (!wizOnePageMode || !btn || btn.disabled) return;
+    // Create-only — the tooltip explains training start/completion, which doesn't apply to editing.
+    if (!wizOnePageMode || wizEditingRowId || !btn || btn.disabled) return;
     saveInfoTooltipAnchor = btn;
     positionSaveInfoTooltip(btn);
     var tip = document.getElementById('saveInfoTooltip');
@@ -3295,6 +3946,7 @@ tr:hover .row-actions, tr:focus-within .row-actions { opacity:1; }
     return openEditPrediction(currentDetailRowId);
   };
   window.cancelCreatePrediction = function () {
+    clearWizCreatingTimers();
     document.getElementById('createPredictionView').hidden = true;
     document.getElementById('predictionDetailView').hidden = true;
     document.getElementById('predictionsListView').hidden = false;
@@ -3334,7 +3986,7 @@ tr:hover .row-actions, tr:focus-within .row-actions { opacity:1; }
   function renderDetailSchedule(row) {
     var sched = row.refreshSchedule;
     var html;
-    if (!sched || sched.inference === 'no') {
+    if (!sched || sched.enabled === 'no') {
       html = wizSummaryRow('Automatic refreshes', 'No');
     } else if (sched.scheduleType === 'onetime') {
       var dateStr = sched.runDate ? formatWizRunDate(sched.runDate) : 'Not set';
@@ -3342,6 +3994,7 @@ tr:hover .row-actions, tr:focus-within .row-actions { opacity:1; }
     } else {
       var freqLabel = 'Not set';
       if (sched.frequency === 'daily') freqLabel = 'Daily';
+      else if (sched.frequency === 'weekly') freqLabel = 'Weekly on ' + (sched.weekday || 'Monday');
       else if (sched.frequency === 'monthly') freqLabel = 'Monthly';
       else if (sched.frequency === 'everyNDays') freqLabel = 'Every ' + (sched.everyNDays || 7) + ' days';
       var startStr = sched.startDate ? formatWizRunDate(sched.startDate) : 'Not set';
@@ -3357,7 +4010,12 @@ tr:hover .row-actions, tr:focus-within .row-actions { opacity:1; }
     var badge = document.getElementById('detailStatusBadge');
     badge.className = 'status-pill status-' + row.status;
     badge.innerHTML = statusPillInnerHtml(row.status);
-    renderRecommendationBanner('detail', row);
+    renderDetailRecommendationBanner(row);
+    var failedHint = document.getElementById('detailFailedHint');
+    failedHint.hidden = row.status !== 'failed';
+    if (row.status === 'failed') {
+      document.getElementById('detailFailedRetryBtn').onclick = function () { startRetryFlow(row); };
+    }
 
     document.getElementById('detailInfoRows').innerHTML = wizSummaryRow('Prediction name', row.name)
       + wizSummaryRow('Prediction description', row.description && row.description.trim() ? row.description : '—');
@@ -3400,228 +4058,4 @@ tr:hover .row-actions, tr:focus-within .row-actions { opacity:1; }
   };
 })();
 </script>
-<script>
-/* ====================================================================
-   PROTOSTATES — dev-only state set consumed by the state-switcher block
-   below (and by the design-spec companion, which embeds this file at
-   #state=<id>&shot). Every apply() drives the page's REAL functions with
-   real arguments — no faked overlays — so a state can never drift from
-   what the product code actually renders.
-   ==================================================================== */
-(function () {
-  var NOOP_EVT = { stopPropagation: function () {} };
-
-  function kebab(rowId) {
-    var btn = document.querySelector('tr[data-id="' + rowId + '"] .row-actions .icon-btn[aria-label="More actions"]');
-    if (btn) btn.click();
-  }
-  // Disabled row-menu items, in render order: Retrain model, Archive, Delete.
-  function menuTooltip(rowId, index) {
-    kebab(rowId);
-    var items = document.querySelectorAll('#rowMenuPanel .menu-item.disabled[data-tooltip]');
-    if (items[index]) showMenuTooltip(items[index]);
-  }
-  function typeName(value) {
-    var input = document.getElementById('wizPredictionNameInput');
-    input.value = value;
-    input.dispatchEvent(new Event('input', { bubbles: true }));
-  }
-  function pickGoalEvent(value) {
-    addWizEvent();
-    var trigger = document.querySelector('.wiz-select-trigger[data-select-key^="event:"]');
-    if (!trigger) return;
-    trigger.click();
-    var option = document.querySelector('#wizSelectPanel .wiz-select-option[data-value="' + value + '"]');
-    if (option) option.click();
-  }
-  function pickDate(target, y, m, d) {
-    openWizDatePicker(NOOP_EVT, target);
-    selectWizCalDate(y, m, d);
-  }
-  // The complete Version-B create form, filled the way a user fills it.
-  function fillCreateForm() {
-    openCreatePrediction();
-    typeName('Sony soundbar repeat purchase');
-    pickGoalEvent('product_purchased');
-    pickDate('rundate', 2026, 7, 20);
-  }
-
-  window.PROTOSTATES = [
-    /* ---- listing ---- */
-    { id: 'populated', label: 'Prediction list', apply: function () {} },
-    { id: 'row-menu', label: 'Row menu — Ready model', apply: function () { kebab('p01'); } },
-    { id: 'row-menu-training', label: 'Row menu — Training model', apply: function () { kebab('p02'); } },
-    { id: 'activity-log', label: 'Activity log dialog', apply: function () { handleRowMenuAction('activity', 'p01'); } },
-    { id: 'detail', label: 'Prediction detail', apply: function () { openPredictionDetail('p01'); } },
-
-    /* ---- create (Version B — single page) ---- */
-    { id: 'create-2-form', label: 'Create — empty form', apply: function () { openCreatePrediction(); } },
-    { id: 'create-3-ready', label: 'Create — ready to save', apply: fillCreateForm },
-    { id: 'create-4-saved', label: 'Create — saved', apply: function () { fillCreateForm(); handleWizPrimaryAction(); } },
-
-    /* ---- edit (multi-step wizard) ---- */
-    { id: 'edit-2-setup', label: 'Edit — Setup', apply: function () { openEditPrediction('p01'); } },
-    { id: 'edit-3-schedule', label: 'Edit — Schedule', apply: function () { openEditRefreshSchedule('p01'); } },
-    { id: 'edit-4-review', label: 'Edit — Review & launch', apply: function () { openEditRefreshSchedule('p01'); handleWizardNext(); } },
-
-    /* ---- confirmations ---- */
-    { id: 'delete-2-confirm', label: 'Delete confirmation', apply: function () { handleRowMenuAction('delete', 'p01'); } },
-    { id: 'archive-confirm', label: 'Archive confirmation', apply: function () { handleRowMenuAction('archive', 'p01'); } },
-    { id: 'retrain-confirm', label: 'Retrain confirmation', apply: function () { handleRowMenuAction('retrain', 'p03'); } },
-
-    /* ---- error demos ---- */
-    { id: 'error-name-required', label: 'Error — name required',
-      apply: function () { openEditPrediction('p01'); typeName(''); handleWizardNext(); } },
-    { id: 'error-goal-event-required', label: 'Error — goal event required',
-      apply: function () { openEditPrediction('p01'); removeWizEvent(1); handleWizardNext(); } },
-    { id: 'error-run-date-required', label: 'Error — run date required',
-      apply: function () { openEditRefreshSchedule('p01'); selectWizScheduleType('onetime'); handleWizardNext(); } },
-    { id: 'error-frequency-required', label: 'Error — frequency required',
-      apply: function () { openEditRefreshSchedule('p01'); selectWizFrequency(null); handleWizardNext(); } },
-    { id: 'error-end-date-order', label: 'Error — end date before start',
-      apply: function () { openEditRefreshSchedule('p01'); pickDate('enddate', 2026, 5, 15); handleWizardNext(); } },
-    { id: 'error-retrain-unavailable', label: 'Error — retrain unavailable',
-      apply: function () { menuTooltip('p02', 0); } },
-    { id: 'error-retrain-cooldown', label: 'Error — retrain cooldown',
-      apply: function () { menuTooltip('p01', 0); } },
-    { id: 'error-archive-unavailable', label: 'Error — archive unavailable',
-      apply: function () { menuTooltip('p02', 1); } },
-    { id: 'error-delete-unavailable', label: 'Error — delete unavailable',
-      apply: function () { menuTooltip('p02', 2); } }
-  ];
-})();
-</script>
-<!-- ====================================================================
-     STATE SWITCHER — dev-only preview control (NOT part of the product UI)
-     Append this block just before </body>. The page must define, in its own
-     <script>, a global list of the screen's states BEFORE this block runs:
-
-         window.PROTOSTATES = [
-           { id:'populated',    label:'Populated',           apply:function(){} },   // first = default
-           { id:'empty',        label:'Empty — no data',     apply:showEmpty },
-           { id:'empty-filter', label:'Empty — no matches',  apply:showNoMatches },
-           { id:'selected',     label:'Rows selected',       apply:function(){ selectAll(); } },
-           { id:'drawer-create',label:'Create drawer',       apply:function(){ openCreate(); } },
-           { id:'drawer-edit',  label:'Edit drawer',         apply:function(){ openEdit('c001'); } },
-           { id:'confirm',      label:'Delete confirm',      apply:function(){ openBulkDelete(); } }
-         ];
-
-     Switching reloads the page at #state=<id>, so every state is a clean fresh
-     render (no residual DOM from the previous state). The pill is draggable
-     (drag to reposition; it stays inside the viewport and remembers where you
-     left it across state reloads). The control hides itself
-     when the URL contains `shot` (e.g. file://...#state=empty&shot) so the
-     Verification render-judge screenshots are clean product-only captures.
-     ==================================================================== -->
-<div id="proto-switcher">
-  <button id="proto-switcher-btn" type="button" aria-haspopup="menu" aria-expanded="false" aria-label="Switch prototype state">
-    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-      <path d="M8 1.8 1.8 5 8 8.2 14.2 5 8 1.8Z M1.8 8 8 11.2 14.2 8 M1.8 11 8 14.2 14.2 11"
-            stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>
-    </svg>
-    <span id="proto-switcher-label">States</span>
-    <svg width="11" height="11" viewBox="0 0 12 12" aria-hidden="true"><path d="M3 4.5 6 7.5 9 4.5" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
-  </button>
-  <div id="proto-switcher-menu" role="menu" hidden></div>
-</div>
-<style>
-  #proto-switcher{position:fixed;right:20px;bottom:20px;z-index:2147483000;font-family:'Open Sans',system-ui,-apple-system,sans-serif;}
-  #proto-switcher-btn{display:inline-flex;align-items:center;gap:8px;height:38px;padding:0 14px;border:none;border-radius:19px;
-    background:#1B1F2A;color:#fff;font-size:13px;font-weight:600;letter-spacing:.2px;cursor:grab;box-shadow:0 4px 16px rgba(0,0,0,.30);
-    touch-action:none;user-select:none;-webkit-user-select:none;}
-  #proto-switcher.dragging #proto-switcher-btn{cursor:grabbing;}
-  #proto-switcher-btn:hover{background:#2A3140;}
-  #proto-switcher-btn:focus-visible{outline:2px solid #5C93FF;outline-offset:2px;}
-  #proto-switcher-menu{position:absolute;right:0;bottom:46px;min-width:208px;background:#1B1F2A;border-radius:10px;padding:6px;box-shadow:0 10px 30px rgba(0,0,0,.38);}
-  #proto-switcher-menu[hidden]{display:none;}
-  .proto-state-item{display:flex;align-items:center;gap:9px;width:100%;padding:8px 10px;border:none;background:none;color:#C9CEDA;
-    font:600 13px/1.2 inherit;letter-spacing:.2px;text-align:left;border-radius:6px;cursor:pointer;}
-  .proto-state-item:hover{background:#2A3140;color:#fff;}
-  .proto-state-item:focus-visible{outline:2px solid #5C93FF;outline-offset:-2px;}
-  .proto-state-item .dot{width:6px;height:6px;border-radius:50%;background:transparent;flex:none;}
-  .proto-state-item.active{color:#fff;} .proto-state-item.active .dot{background:#5C93FF;}
-  @media print{#proto-switcher{display:none;}}
-</style>
-<script>
-(function(){
-  var SHOT = /[?#&]shot\b/.test(location.href);          // screenshot mode: apply state, hide control
-  var sw = document.getElementById('proto-switcher');
-  var states = window.PROTOSTATES || [];
-  var cur = (location.hash.match(/state=([\w-]+)/) || [])[1] || (states[0] && states[0].id);
-  var active = states.filter(function(s){ return s.id === cur; })[0] || states[0];
-  if (active) { try { active.apply && active.apply(); } catch (e) { /* state fn missing */ } }
-  if (SHOT) { if (sw) sw.style.display = 'none'; return; }   // clean product-only capture
-  if (!states.length || !sw) { if (sw) sw.style.display = 'none'; return; }
-  var btn = document.getElementById('proto-switcher-btn'),
-      menu = document.getElementById('proto-switcher-menu'),
-      label = document.getElementById('proto-switcher-label');
-  if (active) label.textContent = active.label;
-  states.forEach(function(s){
-    var b = document.createElement('button');
-    b.className = 'proto-state-item' + (s.id === (active && active.id) ? ' active' : '');
-    b.setAttribute('role','menuitem'); b.type = 'button';
-    b.innerHTML = '<span class="dot"></span>';
-    b.appendChild(document.createTextNode(s.label));
-    b.onclick = function(){ location.hash = 'state=' + s.id; location.reload(); };
-    menu.appendChild(b);
-  });
-
-  // ---- Position: clamp to viewport, persist across the state reload ------
-  var MARGIN = 12, POS_KEY = 'proto-switcher-pos';
-  function place(x, y){                                    // x,y = desired top-left, in px
-    var r = sw.getBoundingClientRect();
-    var maxX = window.innerWidth  - r.width  - MARGIN;
-    var maxY = window.innerHeight - r.height - MARGIN;
-    x = Math.max(MARGIN, Math.min(x, Math.max(MARGIN, maxX)));
-    y = Math.max(MARGIN, Math.min(y, Math.max(MARGIN, maxY)));
-    sw.style.left = x + 'px'; sw.style.top = y + 'px';
-    sw.style.right = 'auto'; sw.style.bottom = 'auto';
-  }
-  try { var saved = JSON.parse(sessionStorage.getItem(POS_KEY) || 'null');
-        if (saved) place(saved.x, saved.y); } catch (e) {}
-  window.addEventListener('resize', function(){
-    if (sw.style.left) { var r = sw.getBoundingClientRect(); place(r.left, r.top); }
-    positionMenu();
-  });
-
-  // ---- Menu placement: flip up/down + left/right so it stays on-screen ---
-  function positionMenu(){
-    if (menu.hidden) return;
-    var r = sw.getBoundingClientRect();
-    var openUp = r.top + r.height / 2 > window.innerHeight / 2;
-    menu.style.top = openUp ? 'auto' : '46px'; menu.style.bottom = openUp ? '46px' : 'auto';
-    var alignRight = r.left + r.width / 2 > window.innerWidth / 2;
-    menu.style.right = alignRight ? '0' : 'auto'; menu.style.left = alignRight ? 'auto' : '0';
-  }
-
-  // ---- Drag (threshold keeps a plain click working as menu toggle) -------
-  var DRAG_THRESHOLD = 4, down = null, dragged = false;
-  btn.addEventListener('pointerdown', function(e){
-    if (e.button != null && e.button !== 0) return;
-    var r = sw.getBoundingClientRect();
-    down = { px:e.clientX, py:e.clientY, ox:r.left, oy:r.top };
-    dragged = false; btn.setPointerCapture(e.pointerId);
-  });
-  btn.addEventListener('pointermove', function(e){
-    if (!down) return;
-    var dx = e.clientX - down.px, dy = e.clientY - down.py;
-    if (!dragged && Math.abs(dx) + Math.abs(dy) < DRAG_THRESHOLD) return;
-    dragged = true; sw.classList.add('dragging'); setOpen(false);
-    place(down.ox + dx, down.oy + dy);
-  });
-  btn.addEventListener('pointerup', function(e){
-    if (!down) return;
-    try { btn.releasePointerCapture(e.pointerId); } catch (e2) {}
-    if (dragged) { sw.classList.remove('dragging');
-      var r = sw.getBoundingClientRect();
-      try { sessionStorage.setItem(POS_KEY, JSON.stringify({ x:r.left, y:r.top })); } catch (e3) {} }
-    down = null;
-  });
-
-  function setOpen(o){ menu.hidden = !o; btn.setAttribute('aria-expanded', String(o)); if (o) positionMenu(); }
-  btn.onclick = function(e){ e.stopPropagation(); if (dragged) { dragged = false; return; } setOpen(menu.hidden); };
-  document.addEventListener('click', function(e){ if (!sw.contains(e.target)) setOpen(false); });
-  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') setOpen(false); });
-})();
-</script>
-
+<!-- SWITCHER_INJECT -->
