@@ -3422,7 +3422,7 @@ tr:hover .row-actions, tr:focus-within .row-actions { opacity:1; }
   }
 
   // Controlled demo progress: ticks up on an interval derived from elapsed-time-over-total (never
-  // decreases, never reaches 100% before the stage actually finishes), runs ~30-60s, then either
+  // decreases, never reaches 100% before the stage actually finishes), runs ~5-10s, then either
   // continues into the existing training kickoff (completeWizStep3Save) or — for the demo failure
   // trigger — surfaces the error hint and hands control back to the user. All timers are cleared up
   // front on every call and again as soon as the stage resolves, so a second Save click (once
@@ -3436,7 +3436,7 @@ tr:hover .row-actions, tr:focus-within .row-actions { opacity:1; }
     var progress = 0;
     pctEl.textContent = '0%';
     overlay.hidden = false;
-    var totalMs = 30000 + Math.random() * 30000;
+    var totalMs = 5000 + Math.random() * 5000;
     var startedAt = Date.now();
     wizCreatingProgressTimer = setInterval(function () {
       var elapsed = Date.now() - startedAt;
