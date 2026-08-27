@@ -195,6 +195,12 @@ tr:hover .row-actions, tr:focus-within .row-actions { opacity:1; }
 .menu-item .menu-item-label { flex:1 1 auto; }
 .menu-item.disabled { opacity:0.5; cursor:default; }
 .menu-item.disabled:hover { background:none; }
+/* -- Refresh row-menu item's submenu (Refresh now / Schedule refresh) — a second floating panel,
+   opened on hover/focus of the "Refresh" item, flipped left of the trigger when it would overflow
+   the viewport (see openRowSubmenu). Reuses .menu-panel's positioning/surface; only needs its own
+   stacking context since it can render beside (not just under) the parent panel. -- */
+.menu-submenu { z-index:901; }
+.menu-item.menu-item-submenu[aria-expanded="true"] { background:rgba(0,10,58,0.05); }
 .menu-divider { height:1px; background:var(--color-border-general); margin:4px 0; }
 
 /* -- Disabled menu-item tooltip -- */
@@ -1523,6 +1529,7 @@ tr:hover .row-actions, tr:focus-within .row-actions { opacity:1; }
   </div>
 
   <div class="menu-panel" id="rowMenuPanel"></div>
+  <div class="menu-panel menu-submenu" id="rowMenuSubmenu" role="menu"></div>
   <div class="menu-tooltip" id="rowMenuTooltip" hidden></div>
   <div class="wiz-select-panel" id="wizSelectPanel"></div>
   <div class="wiz-cal-panel" id="wizCalPanel">
@@ -2126,10 +2133,11 @@ tr:hover .row-actions, tr:focus-within .row-actions { opacity:1; }
 
   renderRows(ROWS);
 
-  // ---- Row kebab menu (Figma nodes 881:50242 action matrix + 354:30400 "Menu Actions") ----
-  // Flat 6-item order: Refresh now, Schedule refresh, Retrain model, Activity log, Archive/
-  // Unarchive, Delete — no nested submenu. Status-specific reasons for each disabled item below;
-  // a generic fallback only covers combinations the matrix doesn't call out.
+  // ---- Row kebab menu (Figma nodes 881:50242 action matrix + 354:30400 "Menu Actions",
+  // submenu per node 372:39811 "Refresh Menu") ----
+  // 5-item top level: Refresh (submenu: Refresh now, Schedule refresh), Retrain model, Activity
+  // log, Archive/Unarchive, Delete. Status-specific reasons for each disabled item below; a
+  // generic fallback only covers combinations the matrix doesn't call out.
   var STATUS_REASON = {
     refresh: {
       training: "Refresh isn't available while the prediction is training.",
@@ -2216,21 +2224,96 @@ tr:hover .row-actions, tr:focus-within .row-actions { opacity:1; }
       + '</div>';
   }
 
+  // Renders the "Refresh" top-level item, which opens a submenu (see openRowSubmenu) instead of
+  // acting directly. Enabled whenever either child action is available — e.g. while 'training',
+  // Refresh now is disabled but Schedule refresh isn't, so the trigger stays open-able and the
+  // child items each carry their own enabled/disabled + tooltip state. Only fully inert (both
+  // children disabled, e.g. 'failed'/'archived') does the trigger itself go disabled, reusing the
+  // first child's tooltip reason since there's no single combined-menu-item slot for two reasons.
+  function menuRefreshTriggerHtml(rowId, avail) {
+    var enabled = avail.refreshNow.enabled || avail.scheduleRefresh.enabled;
+    var classes = 'menu-item menu-item-submenu' + (enabled ? '' : ' disabled');
+    var attrs = ' role="menuitem" tabindex="' + (enabled ? '0' : '-1') + '" aria-haspopup="menu" aria-expanded="false" data-row-id="' + rowId + '"';
+    if (enabled) {
+      attrs += ' onmouseenter="openRowSubmenu(this)" onclick="openRowSubmenu(this)"';
+    } else {
+      attrs += ' aria-disabled="true"';
+      var tooltip = avail.refreshNow.tooltip || avail.scheduleRefresh.tooltip;
+      if (tooltip) {
+        attrs += ' data-tooltip="' + escapeHtml(JSON.stringify(tooltip)) + '" onmouseenter="showMenuTooltip(this)" onmouseleave="hideMenuTooltip()" onfocus="showMenuTooltip(this)" onblur="hideMenuTooltip()"';
+      }
+    }
+    return '<div class="' + classes + '"' + attrs + '>'
+      + '<svg width="20" height="20" fill="currentColor" fill-rule="evenodd"><use href="#refreshOutlined20"></use></svg>'
+      + '<span class="menu-item-label">Refresh</span>'
+      + '<svg width="20" height="20" fill="currentColor" fill-rule="evenodd"><use href="#directionalTriangleArrowRightSolid20"></use></svg>'
+      + '</div>';
+  }
+
   function buildRowMenuHtml(row) {
     var avail = getRowActionAvailability(row);
+    var html = menuRefreshTriggerHtml(row.id, avail);
     var items = [
-      { icon: 'refreshOutlined20', label: 'Refresh now', action: 'refresh', avail: avail.refreshNow },
-      { icon: 'scheduleOutlined24', label: 'Schedule refresh', action: 'schedule', avail: avail.scheduleRefresh },
       { icon: 'rerunOutlined20', label: 'Retrain model', action: 'retrain', avail: avail.retrain },
       { icon: 'viewHistoryOutlined20', label: 'Activity log', action: 'activity', avail: avail.activityLog }
     ];
     if (avail.archive) items.push({ icon: 'archivedOutlined20', label: 'Archive', action: 'archive', avail: avail.archive });
     if (avail.unarchive) items.push({ icon: 'emptyBoxOutlined20', label: 'Unarchive', action: 'unarchive', avail: avail.unarchive });
     items.push({ icon: 'trashOutlined20', label: 'Delete', action: 'delete', avail: avail.del });
-    return items.map(function (it) {
+    return html + items.map(function (it) {
       it.rowId = row.id;
       return menuActionItemHtml(it);
     }).join('');
+  }
+
+  // ---- Refresh submenu (Refresh now / Schedule refresh) — a second floating panel opened on
+  // hover/focus of the "Refresh" item. Positioned to the right of the trigger by default, flipped
+  // to the left when it would overflow the viewport. Stays open while the pointer is over either
+  // the trigger or the submenu itself (small close delay so crossing the gap between them doesn't
+  // flicker it shut); closeRowSubmenu() is also called whenever the parent row menu closes. ----
+  var rowSubmenuCloseTimer = null;
+  var rowSubmenuTriggerEl = null;
+
+  window.openRowSubmenu = function (triggerEl) {
+    if (rowSubmenuCloseTimer) { clearTimeout(rowSubmenuCloseTimer); rowSubmenuCloseTimer = null; }
+    if (rowSubmenuTriggerEl === triggerEl) return;
+    var rowId = triggerEl.getAttribute('data-row-id');
+    var row = ROWS.filter(function (r) { return r.id === rowId; })[0];
+    if (!row) return;
+    var avail = getRowActionAvailability(row);
+    var sub = document.getElementById('rowMenuSubmenu');
+    sub.innerHTML = menuActionItemHtml({ icon: 'refreshOutlined20', label: 'Refresh now', action: 'refresh', avail: avail.refreshNow, rowId: rowId })
+      + menuActionItemHtml({ icon: 'scheduleOutlined24', label: 'Schedule refresh', action: 'schedule', avail: avail.scheduleRefresh, rowId: rowId });
+
+    if (rowSubmenuTriggerEl) rowSubmenuTriggerEl.setAttribute('aria-expanded', 'false');
+    triggerEl.setAttribute('aria-expanded', 'true');
+    rowSubmenuTriggerEl = triggerEl;
+
+    var rect = triggerEl.getBoundingClientRect();
+    sub.style.top = rect.top + 'px';
+    sub.classList.add('open');
+    var subRect = sub.getBoundingClientRect();
+    var left = rect.right + 4;
+    if (left + subRect.width > window.innerWidth - 8) left = rect.left - subRect.width - 4;
+    sub.style.left = left + 'px';
+
+    sub.onmouseenter = function () { if (rowSubmenuCloseTimer) { clearTimeout(rowSubmenuCloseTimer); rowSubmenuCloseTimer = null; } };
+    sub.onmouseleave = scheduleCloseRowSubmenu;
+    triggerEl.onmouseleave = scheduleCloseRowSubmenu;
+  };
+
+  function scheduleCloseRowSubmenu() {
+    if (rowSubmenuCloseTimer) clearTimeout(rowSubmenuCloseTimer);
+    rowSubmenuCloseTimer = setTimeout(closeRowSubmenu, 150);
+  }
+
+  function closeRowSubmenu() {
+    if (rowSubmenuCloseTimer) { clearTimeout(rowSubmenuCloseTimer); rowSubmenuCloseTimer = null; }
+    var sub = document.getElementById('rowMenuSubmenu');
+    sub.classList.remove('open');
+    sub.innerHTML = '';
+    if (rowSubmenuTriggerEl) { rowSubmenuTriggerEl.setAttribute('aria-expanded', 'false'); rowSubmenuTriggerEl.onmouseleave = null; }
+    rowSubmenuTriggerEl = null;
   }
 
   function rowMenuFocusableItems() {
@@ -2265,14 +2348,50 @@ tr:hover .row-actions, tr:focus-within .row-actions { opacity:1; }
 
     // Arrow keys cycle between enabled items only (disabled ones sit at tabindex="-1", so they're
     // never in this list); Enter/Space activates the focused item; Escape closes and returns focus
-    // to the kebab trigger (closeRowMenu handles that uniformly for every close path).
+    // to the kebab trigger (closeRowMenu handles that uniformly for every close path). When focus
+    // is inside the Refresh submenu, the same keys operate on that panel instead — Escape/ArrowLeft
+    // step back out to the "Refresh" trigger rather than closing the whole menu.
     rowMenuKeydownHandler = function (e) {
+      var submenuEl = document.getElementById('rowMenuSubmenu');
+      var inSubmenu = submenuEl.classList.contains('open') && submenuEl.contains(document.activeElement);
+      if (inSubmenu) {
+        var subList = Array.prototype.slice.call(submenuEl.querySelectorAll('.menu-item[tabindex="0"]'));
+        var subIdx = subList.indexOf(document.activeElement);
+        if (e.key === 'Escape' || e.key === 'ArrowLeft') {
+          e.preventDefault();
+          var trigger = rowSubmenuTriggerEl;
+          closeRowSubmenu();
+          if (trigger) trigger.focus();
+          return;
+        }
+        if (e.key === 'ArrowDown') { e.preventDefault(); if (subList.length) subList[(subIdx + 1 + subList.length) % subList.length].focus(); return; }
+        if (e.key === 'ArrowUp') { e.preventDefault(); if (subList.length) subList[(subIdx - 1 + subList.length) % subList.length].focus(); return; }
+        if ((e.key === 'Enter' || e.key === ' ') && subIdx !== -1) { e.preventDefault(); document.activeElement.click(); }
+        return;
+      }
       var list = rowMenuFocusableItems();
       var idx = list.indexOf(document.activeElement);
       if (e.key === 'Escape') { e.preventDefault(); closeRowMenu(); return; }
       if (e.key === 'ArrowDown') { e.preventDefault(); if (list.length) list[(idx + 1 + list.length) % list.length].focus(); return; }
       if (e.key === 'ArrowUp') { e.preventDefault(); if (list.length) list[(idx - 1 + list.length) % list.length].focus(); return; }
-      if ((e.key === 'Enter' || e.key === ' ') && idx !== -1) { e.preventDefault(); document.activeElement.click(); }
+      var onRefreshTrigger = document.activeElement && document.activeElement.classList.contains('menu-item-submenu');
+      if (e.key === 'ArrowRight' && onRefreshTrigger) {
+        e.preventDefault();
+        openRowSubmenu(document.activeElement);
+        var first = submenuEl.querySelector('.menu-item[tabindex="0"]');
+        if (first) first.focus();
+        return;
+      }
+      if ((e.key === 'Enter' || e.key === ' ') && idx !== -1) {
+        e.preventDefault();
+        if (onRefreshTrigger) {
+          openRowSubmenu(document.activeElement);
+          var first2 = submenuEl.querySelector('.menu-item[tabindex="0"]');
+          if (first2) first2.focus();
+        } else {
+          document.activeElement.click();
+        }
+      }
     };
     document.addEventListener('keydown', rowMenuKeydownHandler);
   };
@@ -2281,6 +2400,7 @@ tr:hover .row-actions, tr:focus-within .row-actions { opacity:1; }
     var panel = document.getElementById('rowMenuPanel');
     panel.classList.remove('open');
     delete panel.dataset.rowId;
+    closeRowSubmenu();
     hideMenuTooltip();
     if (rowMenuKeydownHandler) { document.removeEventListener('keydown', rowMenuKeydownHandler); rowMenuKeydownHandler = null; }
     if (rowMenuTriggerEl && typeof rowMenuTriggerEl.focus === 'function') rowMenuTriggerEl.focus();
@@ -2346,7 +2466,8 @@ tr:hover .row-actions, tr:focus-within .row-actions { opacity:1; }
 
   document.addEventListener('click', function (e) {
     var panel = document.getElementById('rowMenuPanel');
-    if (panel.classList.contains('open') && !panel.contains(e.target)) closeRowMenu();
+    var submenu = document.getElementById('rowMenuSubmenu');
+    if (panel.classList.contains('open') && !panel.contains(e.target) && !submenu.contains(e.target)) closeRowMenu();
   });
 
   // ---- Toast — 3 DS Main variants: 'info' (default, azure/static), 'spinner' (azure/animated,
